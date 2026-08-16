@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b42318">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Yangın Denetim Pro</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#17212b;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+header{background:#202b36;color:white;padding:16px;position:sticky;top:0;z-index:5}h1{font-size:20px;margin:0}header small{color:#d0d5dd}
+main{max-width:900px;margin:auto;padding:12px 12px 80px}.card{background:#fff;border:1px solid #d0d5dd;border-radius:14px;padding:14px;margin:10px 0}
+h2{font-size:17px;margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{font-size:12px;font-weight:700}input,select,textarea{width:100%;margin-top:5px;padding:11px;border:1px solid #cfd4dc;border-radius:10px;font-size:16px;background:#fff}textarea{min-height:80px}
+button{border:0;border-radius:10px;padding:12px 14px;font-weight:800;font-size:14px}.primary{background:#b42318;color:#fff}.dark{background:#202b36;color:#fff}.light{background:#eef2f6}.green{background:#12b76a;color:#fff}.danger{background:#fee4e2;color:#b42318}
+.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.toolbar button:first-child{grid-column:1/-1}
+.hidden{display:none}.notice{padding:11px;border-radius:10px;background:#fff8e1;border:1px solid #f5c542;font-size:13px}.section{border:1px solid #d0d5dd;border-radius:12px;overflow:hidden;margin:10px 0}.section h3{margin:0;padding:11px;background:#f2f4f7;font-size:14px}.item{padding:12px;border-top:1px solid #eaecf0}.item-title{font-weight:700;font-size:14px;margin-bottom:8px}.itemgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.itemgrid textarea{grid-column:1/-1}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.metric{text-align:center;border:1px solid #e4e7ec;border-radius:10px;padding:9px}.metric b{display:block;font-size:20px}.metric span{font-size:10px;color:#667085}.bar{height:9px;background:#e4e7ec;border-radius:20px;overflow:hidden;margin-top:10px}.bar i{display:block;height:100%;background:#12b76a;width:0}
+.record{border:1px solid #d0d5dd;border-radius:10px;padding:10px;margin:8px 0}.record b{display:block}.record small{color:#667085}.photo{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.thumb{width:70px;height:70px;object-fit:cover;border-radius:8px;margin:3px}.follow{background:#eef4ff;border:1px solid #b2ccff;padding:10px;border-radius:10px;margin-top:8px}
+.bottom{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #d0d5dd;padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:10}.bottom button{width:100%}
+@media(max-width:500px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
+@media(min-width:700px){.toolbar{display:flex}.toolbar button:first-child{grid-column:auto}.bottom{position:static;background:transparent;border:0;padding:0}}
+@media print{header,.toolbar,.bottom,.noPrint{display:none!important}body{background:white}.card,.section{box-shadow:none}}
+</style>
+</head>
+<body>
+<header><h1>🔥 Yangın Denetim Pro</h1><small>Mobil saha denetim ve takip sistemi</small></header>
+<main>
+<section class="card">
+<h2>1. İşletme Bilgileri</h2>
+<div class="grid">
+<label>İşletme / Bina Adı<input id="name"></label>
+<label>Yapı Türü<select id="type"><option value="">Seçiniz</option><option>APARTMAN / KONUT</option><option>SİTE / TOPLU KONUT</option><option>İŞYERİ</option><option>RESTORAN / MUTFAK</option><option>OTEL / KONAKLAMA</option><option>DEPO</option></select></label>
+<label>Adres<input id="address"></label><label>Denetim Tarihi<input id="date" type="date"></label>
+<label>Denetçi<input id="inspector"></label><label>Yetkili / Telefon<input id="contact"></label>
+</div>
+<div class="toolbar">
+<button class="primary" id="start">📋 DENETİMİ BAŞLAT</button>
+<button class="dark" id="save">💾 KAYDET</button>
+<button class="green" onclick="window.print()">📄 PDF / YAZDIR</button>
+<button class="light" id="historyBtn">🗂 GEÇMİŞ</button>
+<button class="light" id="backup">⬇️ YEDEK AL</button>
+<button class="light" id="restoreBtn">⬆️ YEDEK YÜKLE</button>
+<input id="restore" type="file" accept=".json" class="hidden">
+</div>
+</section>
+
+<section class="card hidden" id="topics">
+<h2>2. Denetim Konuları</h2>
+<div class="notice" id="info"></div>
+<div class="metrics"><div class="metric"><b id="total">0</b><span>Madde</span></div><div class="metric"><b id="ok">0</b><span>Uygun</span></div><div class="metric"><b id="bad">0</b><span>Uygunsuz</span></div><div class="metric"><b id="score">0%</b><span>Uygunluk</span></div></div>
+<div class="bar"><i id="bar"></i></div><div id="list"></div>
+</section>
+
+<section class="card hidden" id="final">
+<h2>3. Sonuç ve Takip</h2>
+<label>Genel Değerlendirme<textarea id="general"></textarea></label>
+<label style="display:block;margin-top:10px">Tekrar Denetim Tarihi<input id="followDate" type="date"></label>
+<div class="follow">💡 Uygunsuzlukların giderilmesi için takip tarihi belirleyebilirsiniz.</div>
+</section>
+
+<section class="card hidden" id="history">
+<h2>Geçmiş Denetimler</h2><div id="records"></div>
+</section>
+</main>
+<div class="bottom"><button class="dark" id="saveBottom">💾 DENETİMİ KAYDET</button></div>
+
+<script>
+const DATA={
+"APARTMAN / KONUT":{"Genel Yangın Güvenliği":["Bina kullanım sınıfı ve yapı özellikleri değerlendirilmiş.","İtfaiye araçlarının bina yaklaşım yolu açık.","Bina girişleri araçlarla kapatılmıyor."],"Kaçış Yolları":["Ortak koridorlar ve merdivenler açık.","Kaçış yollarında eşya/depolama yapılmıyor.","Kaçış kapıları kolay açılabilir durumda.","Acil durum aydınlatmaları çalışır durumda.","Acil çıkış yönlendirmeleri mevcut ve görünür."],"Yangın Söndürücüler":["Uygun tipte yangın söndürücü mevcut.","Yangın söndürücülerin önü açık ve erişilebilir.","Periyodik bakım/kontrol kayıtları mevcut."],"Elektrik":["Elektrik panoları uygun.","Panoların önü açık.","Açıkta veya hasarlı kablo bulunmuyor."],"Bodrum / Otopark":["Otopark kaçış yolları açık.","Yanıcı malzeme depolanmıyor.","Teknik alanlar düzenli."]},
+"SİTE / TOPLU KONUT":{"Site Genel Alanları":["İtfaiye araçlarının site içine ulaşımı mümkün.","İtfaiye yolları araç parkından korunuyor.","Hidrantların önü açık.","Ortak alanlarda yanıcı malzeme depolanmıyor."],"Yangın Sistemleri":["Yangın alarm paneli çalışıyor.","Dedektörler ve manuel ihbar butonları erişilebilir.","Yangın dolapları kullanılabilir.","Yangın pompaları çalışıyor.","Acil aydınlatma çalışıyor."],"Otopark / Teknik Alanlar":["Otopark kaçış yolları açık.","Elektrikli araç şarj alanları güvenli.","Jeneratör, trafo ve kazan daireleri güvenli."],"Yönetim":["Yangın güvenliği sorumluları belirlenmiş.","Acil durum planı mevcut.","Yangın ekipleri oluşturulmuş.","Eğitim ve tatbikat kayıtları mevcut."]},
+"İŞYERİ":{"Genel":["Faaliyet konusu ve yangın riskleri belirlenmiş.","Gerekli belgeler mevcut.","Acil durum planı mevcut."],"Kaçış / Tahliye":["Kaçış yolları açık.","Acil çıkışlar işaretli.","Acil aydınlatmalar çalışıyor.","Toplanma alanı belirlenmiş.","Tahliye planı görünür."],"Elektrik":["Elektrik panoları uygun.","Kablolar korunmuş ve hasarsız."],"Söndürme":["Uygun tip ve sayıda söndürücü mevcut.","Yangın dolapları ve alarm sistemi çalışıyor."]},
+"RESTORAN / MUTFAK":{"Mutfak":["Ocak çevresi temiz.","Davlumbaz filtreleri temiz.","Davlumbaz kanallarında aşırı yağ yok.","Baca temizliği yapılmış.","Gaz bağlantıları uygun.","Ana gaz kesme vanası erişilebilir.","LPG tüpleri uygun yerde."],"Söndürme":["Mutfak söndürücüsü uygun.","Davlumbaz söndürme sistemi varsa aktif.","Yangın dolabı ve alarm çalışıyor."],"Salon":["Masa/sandalyeler kaçışı daraltmıyor.","Acil çıkışlar görünür."],"Depolama":["Karton/ambalaj kaçışta değil.","Yanıcı malzemeler ısıdan uzak."]},
+"OTEL / KONAKLAMA":{"Genel":["Yangın güvenliği sorumluları belirlenmiş.","Acil durum ve tahliye planı mevcut.","Eğitim/tatbikat kayıtları mevcut."],"Odalar":["Kaçış yönlendirmeleri mevcut.","Duman dedektörleri çalışıyor.","Koridorlar açık."],"Alarm":["Alarm paneli aktif.","Dedektör ve butonlar çalışıyor.","Sirenler çalışıyor."],"Kaçış Merdivenleri":["Yangın merdivenleri kullanılabilir.","Yangın kapıları kapanıyor.","Acil aydınlatma çalışıyor."],"Mutfak":["Davlumbaz, kanal ve filtreler temiz.","Gaz kesme ve söndürme sistemleri çalışıyor."]},
+"DEPO":{"Depolama":["Yangın tehlike sınıfı belirlenmiş.","Depolama yüksekliği ve raf düzeni uygun.","Sprinkler ile gerekli boşluk korunuyor.","Yanıcı malzemeler ayrılmış.","Kimyasallar uygun depolanıyor.","Kaçış yolları açık."],"Söndürme":["Söndürücüler uygun ve erişilebilir.","Sprinkler sistemi çalışıyor.","Sprinkler başlıkları açık.","Yangın pompaları çalışıyor.","Yangın alarmı çalışıyor."],"Elektrik":["Elektrik panoları uygun.","Uygunsuz geçici tesisat yok."],"Forklift / Şarj":["Akü şarj alanı ayrılmış.","Şarj alanında yanıcı malzeme yok."],"Yangın Bölmeleri":["Yangın kapıları/bölmeleri bütün.","Tesisat geçişleri korunmuş."]}};
+const COMMON=["Kaçış yolunun tamamen veya ciddi şekilde kapatılması.","Yangın merdiveninin kullanılamaz olması.","Acil çıkış kapısının kilitli olması.","Yangın kapılarının sürekli açık tutulması.","Elektrik panosunda ciddi yanma/ısınma.","Gaz kaçağı veya uygunsuz gaz tesisatı şüphesi.","Davlumbaz/bacada yoğun yağ birikimi.","Yangın alarm sisteminin devre dışı olması.","Sprinkler sisteminin devre dışı olması.","Yangın pompasının çalışmaması.","Yanıcı maddelerin kaçış yollarında depolanması.","İtfaiye araçlarının yaklaşımının engellenmesi."];
+const $=id=>document.getElementById(id); let items=[];
+$("date").value=new Date().toISOString().slice(0,10);
+
+function item(n,t,critical){return `<div class="item"><div class="item-title">${n}. ${t}</div><div class="itemgrid">
+<select data-s="${n}"><option value="">Durum seç</option><option>Uygun</option><option>Uygunsuz</option><option>Kısmen Uygun</option><option>Mevcut Değil</option><option>Kapsam Dışı</option></select>
+<select data-r="${n}"><option>Risk seç</option><option ${critical?"selected":""}>${critical?"Kritik":"Yüksek"}</option><option>Orta</option><option>Düşük</option></select>
+<textarea data-n="${n}" placeholder="Tespit / açıklama"></textarea><textarea data-a="${n}" placeholder="Önerilen tedbir"></textarea>
+<div class="photo" style="grid-column:1/-1"><label>📷 Fotoğraf <input data-p="${n}" type="file" accept="image/*" capture="environment" multiple></label><span data-t="${n}"></span></div>
+</div></div>`}
+function start(){
+const type=$("type").value;if(!type){alert("Önce yapı türünü seçin.");return}
+items=[];let html="",n=0;
+Object.entries(DATA[type]).forEach(([sec,arr])=>{html+=`<div class="section"><h3>${sec}</h3>`;arr.forEach(t=>{items.push(t);n++;html+=item(n,t,false)});html+="</div>"});
+html+='<div class="section"><h3>ORTAK KRİTİK KONTROLLER</h3>';COMMON.forEach(t=>{items.push(t);n++;html+=item(n,t,true)});html+="</div>";
+$("list").innerHTML=html;$("info").textContent=`${type}: ${n} kontrol maddesi`; $("total").textContent=n;$("topics").classList.remove("hidden");$("final").classList.remove("hidden");update();$("topics").scrollIntoView({behavior:"smooth"});
+}
+function update(){let ok=0,bad=0,v=0;items.forEach((_,i)=>{let s=document.querySelector(`[data-s="${i+1}"]`)?.value;if(s&&s!=="Kapsam Dışı"){v++;if(s==="Uygun")ok++;if(s==="Uygunsuz")bad++}});let sc=v?Math.round(ok/v*100):0;$("ok").textContent=ok;$("bad").textContent=bad;$("score").textContent=sc+"%";$("bar").style.width=sc+"%"}
+function collect(){let o={id:Date.now(),meta:{name:$("name").value,type:$("type").value,address:$("address").value,date:$("date").value,inspector:$("inspector").value,contact:$("contact").value,general:$("general").value,follow:$("followDate").value},items:items.map((t,i)=>({text:t,status:document.querySelector(`[data-s="${i+1}"]`)?.value||"",risk:document.querySelector(`[data-r="${i+1}"]`)?.value||"",note:document.querySelector(`[data-n="${i+1}"]`)?.value||"",action:document.querySelector(`[data-a="${i+1}"]`)?.value||""}))};return o}
+function save(){if(!items.length){start();if(!items.length)return}let a=JSON.parse(localStorage.getItem("yd")||"[]");a.unshift(collect());localStorage.setItem("yd",JSON.stringify(a));alert("Denetim kaydedildi.");historyShow()}
+function historyShow(){let a=JSON.parse(localStorage.getItem("yd")||"[]");$("history").classList.remove("hidden");$("records").innerHTML=a.length?a.map(x=>`<div class="record"><b>${x.meta.name||"İsimsiz"}</b><small>${x.meta.type} • ${x.meta.date||""}<br>${x.meta.address||""}</small><br><button class="light" onclick="loadRec(${x.id})">Aç</button> <button class="danger" onclick="delRec(${x.id})">Sil</button></div>`).join(""):"Henüz kayıt yok."}
+window.loadRec=function(id){let a=JSON.parse(localStorage.getItem("yd")||"[]"),x=a.find(z=>z.id===id);if(!x)return;$("name").value=x.meta.name||"";$("type").value=x.meta.type||"";$("address").value=x.meta.address||"";$("date").value=x.meta.date||"";$("inspector").value=x.meta.inspector||"";$("contact").value=x.meta.contact||"";start();$("general").value=x.meta.general||"";$("followDate").value=x.meta.follow||"";x.items.forEach((it,i)=>{let n=i+1;document.querySelector(`[data-s="${n}"]`).value=it.status;document.querySelector(`[data-r="${n}"]`).value=it.risk;document.querySelector(`[data-n="${n}"]`).value=it.note;document.querySelector(`[data-a="${n}"]`).value=it.action});update();window.scrollTo({top:0,behavior:"smooth"})}
+window.delRec=function(id){let a=JSON.parse(localStorage.getItem("yd")||"[]").filter(x=>x.id!==id);localStorage.setItem("yd",JSON.stringify(a));historyShow()}
+$("start").onclick=start;$("save").onclick=save;$("saveBottom").onclick=save;$("historyBtn").onclick=historyShow;
+$("backup").onclick=()=>{let b=new Blob([localStorage.getItem("yd")||"[]"],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="yangin-denetim-yedek.json";a.click();URL.revokeObjectURL(u)};
+$("restoreBtn").onclick=()=>$("restore").click();$("restore").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{JSON.parse(r.result);localStorage.setItem("yd",r.result);alert("Yedek yüklendi.");historyShow()}catch{alert("Yedek dosyası geçersiz.")}};r.readAsText(f)};
+$("list").addEventListener("change",e=>{if(e.target.matches('select[data-s]'))update();if(e.target.matches('input[type=file]')){let out=document.querySelector(`[data-t="${e.target.dataset.p}"]`);if(out)out.textContent=" 📷 "+e.target.files.length+" fotoğraf seçildi"}});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+})();
+</script></body></html>
