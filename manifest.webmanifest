@@ -1,10 +1,1 @@
-{
-  "name": "Yangın Denetim Pro",
-  "short_name": "Yangın Denetim",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#f4f6f8",
-  "theme_color": "#b42318",
-  "lang": "tr",
-  "icons": []
-}
+{"name":"Yangın Denetim Pro","short_name":"Yangın Denetim","start_url":"./index.html","display":"standalone","background_color":"#f2f4f7","theme_color":"#202b36","lang":"tr"}
