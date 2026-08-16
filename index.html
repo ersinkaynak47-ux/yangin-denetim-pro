@@ -53,6 +53,36 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 #pdf-report .footer{margin-top:18px;padding-top:7px;border-top:1px solid #bbb;text-align:center;font-size:8px;color:#666}
 </style>
 
+
+<style id="native-print-css">
+#print-report{display:none}
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  body.printing-report>header,body.printing-report>main{display:none!important}
+  body.printing-report{background:#fff!important}
+  body.printing-report #print-report{display:block!important;position:static!important;width:auto!important;background:#fff;color:#111;font-family:Arial,sans-serif;font-size:9pt}
+  .print-inner{width:100%}
+  .print-header{display:flex;justify-content:space-between;border-bottom:2px solid #222;padding-bottom:8px;margin-bottom:9px}
+  .print-header strong{font-size:18pt;display:block}.print-header small{font-size:8pt;display:block;margin-top:3px}
+  .print-info{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px}
+  .print-info div{border:1px solid #aaa;padding:5px;min-height:25px}.print-info b{display:block;font-size:7pt;color:#555}
+  .print-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px}
+  .print-stats div{border:1px solid #aaa;text-align:center;padding:5px}.print-stats b{font-size:12pt;display:block}
+  #print-report h3{font-size:9pt;background:#eee;border:1px solid #999;padding:4px;margin:7px 0 0;break-after:avoid}
+  #print-report table{width:100%;border-collapse:collapse;table-layout:fixed;break-inside:auto}
+  #print-report th,#print-report td{border:1px solid #999;padding:3px;vertical-align:top;word-wrap:break-word}
+  #print-report th{font-size:7pt;background:#eee}.print-inner td{font-size:7pt}
+  #print-report th:nth-child(1),#print-report td:nth-child(1){width:3%}
+  #print-report th:nth-child(2),#print-report td:nth-child(2){width:27%}
+  #print-report th:nth-child(3),#print-report td:nth-child(3){width:10%}
+  #print-report th:nth-child(4),#print-report td:nth-child(4){width:10%}
+  #print-report th:nth-child(5),#print-report td:nth-child(5){width:25%}
+  #print-report th:nth-child(6),#print-report td:nth-child(6){width:25%}
+  .print-general{border:1px solid #aaa;min-height:45px;padding:6px;white-space:pre-wrap}
+  .print-sign{display:grid;grid-template-columns:1fr 1fr;gap:35px;margin-top:12px;break-inside:avoid}
+  .print-footer{margin-top:10px;border-top:1px solid #aaa;padding-top:4px;text-align:center;font-size:6pt;color:#666}
+}
+</style>
 </head><body>
 <header><h1>🔥 Yangın Denetim Pro</h1><small>Ücretsiz V1 • PDF raporlu saha denetim sistemi</small></header>
 <main>
@@ -64,7 +94,7 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 </div><div class="actions noPrint">
 <button class="red" onclick="render()">📋 DENETİMİ BAŞLAT / KONULARI GÖSTER</button>
 <button class="dark" onclick="save()">💾 DENETİMİ KAYDET</button>
-<button class="green" onclick="makePDF()">📄 PDF İNDİR / AÇ</button>
+<button class="green" onclick="makePDF()">📄 PDF OLUŞTUR</button>
 </div></section>
 <section class="card"><h2>📊 Denetim Özeti</h2><div class="stat">
 <div><b id="total">0</b><small>Toplam</small></div><div><b id="ok">0</b><small>Uygun</small></div><div><b id="bad">0</b><small>Uygunsuz</small></div><div><b id="score">0%</b><small>Uygunluk</small></div></div></section>
@@ -95,8 +125,9 @@ typeEl.onchange=render;load();render();
 
 
 
-async function makePDF(){
-  const old=document.getElementById("pdf-report");
+
+function makePDF(){
+  const old=document.getElementById("print-report");
   if(old) old.remove();
 
   const escPdf=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
@@ -109,11 +140,8 @@ async function makePDF(){
   const general=document.getElementById("general")?.value || "";
   const follow=document.getElementById("follow")?.value || "";
 
-  const sections=DB[type] || [];
-  let no=0, total=0, answered=0, ok=0, bad=0;
-  let sectionsHtml="";
-
-  sections.forEach(sec=>{
+  let no=0,total=0,answered=0,ok=0,bad=0,sectionsHtml="";
+  (DB[type]||[]).forEach(sec=>{
     let rows="";
     sec[1].forEach(q=>{
       no++; total++;
@@ -121,106 +149,44 @@ async function makePDF(){
       const risk=document.querySelector(`[data-risk="${no}"]`)?.value || "";
       const note=document.querySelector(`[data-note="${no}"]`)?.value || "";
       const action=document.querySelector(`[data-action="${no}"]`)?.value || "";
-      if(st && st!=="İşaretlenmedi" && st!=="Kapsam Dışı"){answered++; if(st==="Uygun")ok++; if(st==="Uygunsuz")bad;}
-      rows += `<tr>
-        <td class="no">${no}</td><td class="q">${escPdf(q)}</td>
-        <td class="status">${escPdf(st)}</td><td>${escPdf(risk)}</td>
-        <td>${escPdf(note)}</td><td>${escPdf(action)}</td>
-      </tr>`;
+      if(st && st!=="İşaretlenmedi" && st!=="Kapsam Dışı"){answered++;if(st==="Uygun")ok++;if(st==="Uygunsuz")bad;}
+      rows+=`<tr><td>${no}</td><td>${escPdf(q)}</td><td>${escPdf(st)}</td><td>${escPdf(risk)}</td><td>${escPdf(note)}</td><td>${escPdf(action)}</td></tr>`;
     });
-    sectionsHtml += `<div class="pdf-section"><h3>${escPdf(sec[0])}</h3>
-      <table><thead><tr><th>No</th><th>Kontrol maddesi</th><th>Durum</th><th>Risk</th><th>Tespit</th><th>Tedbir</th></tr></thead>
-      <tbody>${rows}</tbody></table></div>`;
+    sectionsHtml+=`<h3>${escPdf(sec[0])}</h3><table><thead><tr><th>No</th><th>Kontrol maddesi</th><th>Durum</th><th>Risk</th><th>Tespit</th><th>Tedbir</th></tr></thead><tbody>${rows}</tbody></table>`;
   });
-
-  let commonRows="";
+  let rows="";
   COMMON.forEach(q=>{
-    no++; total++;
+    no++;total++;
     const st=document.querySelector(`[data-status="${no}"]`)?.value || "İşaretlenmedi";
     const risk=document.querySelector(`[data-risk="${no}"]`)?.value || "";
     const note=document.querySelector(`[data-note="${no}"]`)?.value || "";
     const action=document.querySelector(`[data-action="${no}"]`)?.value || "";
-    if(st && st!=="İşaretlenmedi" && st!=="Kapsam Dışı"){answered++; if(st==="Uygun")ok++; if(st==="Uygunsuz")bad;}
-    commonRows += `<tr><td class="no">${no}</td><td class="q">${escPdf(q)}</td><td class="status">${escPdf(st)}</td><td>${escPdf(risk)}</td><td>${escPdf(note)}</td><td>${escPdf(action)}</td></tr>`;
+    if(st && st!=="İşaretlenmedi" && st!=="Kapsam Dışı"){answered++;if(st==="Uygun")ok++;if(st==="Uygunsuz")bad;}
+    rows+=`<tr><td>${no}</td><td>${escPdf(q)}</td><td>${escPdf(st)}</td><td>${escPdf(risk)}</td><td>${escPdf(note)}</td><td>${escPdf(action)}</td></tr>`;
   });
-  sectionsHtml += `<div class="pdf-section"><h3>Ortak Kritik Kontroller</h3>
-    <table><thead><tr><th>No</th><th>Kontrol maddesi</th><th>Durum</th><th>Risk</th><th>Tespit</th><th>Tedbir</th></tr></thead>
-    <tbody>${commonRows}</tbody></table></div>`;
+  sectionsHtml+=`<h3>Ortak Kritik Kontroller</h3><table><thead><tr><th>No</th><th>Kontrol maddesi</th><th>Durum</th><th>Risk</th><th>Tespit</th><th>Tedbir</th></tr></thead><tbody>${rows}</tbody></table>`;
 
-  const score=answered ? Math.round(ok/answered*100) : 0;
+  const score=answered?Math.round(ok/answered*100):0;
   const report=document.createElement("div");
-  report.id="pdf-report";
+  report.id="print-report";
   report.innerHTML=`
-  <div class="pdf-page">
-    <div class="pdf-head">
-      <div><div class="pdf-title">YANGIN DENETİM RAPORU</div><div class="pdf-sub">Yangın Denetim Pro • Saha Denetim Formu</div></div>
-      <div class="pdf-date">${escPdf(date)}</div>
+  <div class="print-inner">
+    <div class="print-header"><div><strong>YANGIN DENETİM RAPORU</strong><small>Yangın Denetim Pro • Saha Denetim Formu</small></div><span>${escPdf(date)}</span></div>
+    <div class="print-info">
+      <div><b>İşletme / Bina</b>${escPdf(name)||"-"}</div><div><b>Yapı Türü</b>${escPdf(type)||"-"}</div>
+      <div><b>Adres</b>${escPdf(address)||"-"}</div><div><b>Denetçi</b>${escPdf(inspector)||"-"}</div>
+      <div><b>Yetkili / Telefon</b>${escPdf(phone)||"-"}</div><div><b>Tekrar Denetim</b>${escPdf(follow)||"-"}</div>
     </div>
-    <div class="pdf-box">
-      <h2>İşletme Bilgileri</h2>
-      <div class="info-grid">
-        <div><b>İşletme / Bina</b><span>${escPdf(name)||"-"}</span></div>
-        <div><b>Yapı Türü</b><span>${escPdf(type)||"-"}</span></div>
-        <div><b>Adres</b><span>${escPdf(address)||"-"}</span></div>
-        <div><b>Denetçi</b><span>${escPdf(inspector)||"-"}</span></div>
-        <div><b>Yetkili / Telefon</b><span>${escPdf(phone)||"-"}</span></div>
-        <div><b>Tekrar Denetim</b><span>${escPdf(follow)||"-"}</span></div>
-      </div>
-    </div>
-    <div class="score-grid">
-      <div><b>${total}</b><small>Toplam madde</small></div>
-      <div><b>${ok}</b><small>Uygun</small></div>
-      <div><b>${bad}</b><small>Uygunsuz</small></div>
-      <div><b>${score}%</b><small>Uygunluk</small></div>
-    </div>
-    <div class="pdf-note">Not: “İşaretlenmedi” durumundaki maddeler denetim sırasında değerlendirilmelidir.</div>
+    <div class="print-stats"><div><b>${total}</b>Toplam</div><div><b>${ok}</b>Uygun</div><div><b>${bad}</b>Uygunsuz</div><div><b>${score}%</b>Uygunluk</div></div>
     ${sectionsHtml}
-    <div class="pdf-box">
-      <h2>Genel Değerlendirme</h2>
-      <div class="general">${escPdf(general)||"—"}</div>
-    </div>
-    <div class="sign">
-      <div><b>Denetçi</b><br><br>________________________<br>${escPdf(inspector)||"Ad Soyad"}</div>
-      <div><b>Yetkili</b><br><br>________________________<br>${escPdf(phone)||"Ad Soyad / Telefon"}</div>
-    </div>
-    <div class="footer">Yangın Denetim Pro • Oluşturulma tarihi: ${new Date().toLocaleString("tr-TR")}</div>
+    <h3>Genel Değerlendirme</h3><div class="print-general">${escPdf(general)||"—"}</div>
+    <div class="print-sign"><div>Denetçi<br><br>________________________<br>${escPdf(inspector)||"Ad Soyad"}</div><div>Yetkili<br><br>________________________<br>${escPdf(phone)||"Ad Soyad / Telefon"}</div></div>
+    <div class="print-footer">Yangın Denetim Pro • ${new Date().toLocaleString("tr-TR")}</div>
   </div>`;
-
   document.body.appendChild(report);
-  await new Promise(r=>setTimeout(r,200));
-
-  if(typeof html2pdf!=="function"){
-    report.remove();
-    alert("PDF modülü yüklenemedi. İnternet bağlantısını kontrol edin.");
-    return;
-  }
-
-  const fileBase=(name||"isimsiz-isletme").trim().replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ _-]/g,"").replace(/\s+/g,"-");
-  try{
-    const worker=html2pdf().set({
-      margin:[8,8,10,8],
-      filename:`Yangin-Denetim-Raporu-${fileBase||"rapor"}-${date||""}.pdf`,
-      image:{type:"jpeg",quality:.96},
-      html2canvas:{scale:1.25,useCORS:true,backgroundColor:"#ffffff",logging:false},
-      jsPDF:{unit:"mm",format:"a4",orientation:"landscape"},
-      pagebreak:{mode:["css","legacy"]}
-    }).from(report);
-
-    const blob=await worker.outputPdf("blob");
-    report.remove();
-
-    // iOS Safari handles Blob URLs more reliably when opened in a new tab.
-    const url=URL.createObjectURL(blob);
-    const w=window.open(url,"_blank");
-    if(!w){
-      // Fallback: navigate current tab to the PDF.
-      window.location.href=url;
-    }
-    setTimeout(()=>URL.revokeObjectURL(url),60000);
-  }catch(e){
-    report.remove();
-    alert("PDF oluşturulamadı. Safari'de sayfayı yenileyip tekrar deneyin.");
-  }
+  document.body.classList.add("printing-report");
+  setTimeout(()=>window.print(),250);
+  setTimeout(()=>{document.body.classList.remove("printing-report");report.remove();},1500);
 }
 
 </script></body></html>
