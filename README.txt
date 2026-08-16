@@ -1,4 +1,7 @@
-Yangın Denetim Pro – Ücretsiz V1 genişletilmiş sürüm.
-Her yapı türünde 50+ kontrol maddesi + 12 ortak kritik kontrol vardır.
-GitHub Pages'te kökteki index.html dosyasının yerine yükleyin.
-Mevzuat açısından nihai denetim listesi olarak değil, saha kontrol taslağı olarak kullanılmalıdır; güncel mevzuat ve yerel idare/itfaiye kriterleri ayrıca doğrulanmalıdır.
+Yangın Denetim Pro – PDF destekli V1
+
+Bu sürümde PDF / YAZDIR yerine gerçek "PDF İNDİR" düğmesi bulunur.
+PDF oluşturma için html2pdf.js CDN kullanılır; bu nedenle PDF oluştururken internet bağlantısı gerekir.
+iPhone'da PDF oluşturulduktan sonra dosya paylaşım/indirme ekranı açılabilir; Dosyalar > İndirilenler klasörüne kaydedilebilir.
+
+GitHub Pages'te mevcut index.html dosyasının yerine bu index.html yüklenmelidir.

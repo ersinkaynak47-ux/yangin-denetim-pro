@@ -16,8 +16,9 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 .stat{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.stat div{text-align:center;border:1px solid #e4e7ec;border-radius:9px;padding:8px}.stat b{display:block;font-size:18px}.stat small{color:#667085}
 .note{background:#fff8e1;border:1px solid #f5c542;border-radius:10px;padding:10px;font-size:13px}
 @media(max-width:600px){.grid,.ig{grid-template-columns:1fr}.stat{grid-template-columns:1fr 1fr}}@media print{header,.noPrint{display:none!important}body{background:#fff}}
-</style></head><body>
-<header><h1>🔥 Yangın Denetim Pro</h1><small>Ücretsiz V1 • Genişletilmiş saha denetim sistemi</small></header>
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head><body>
+<header><h1>🔥 Yangın Denetim Pro</h1><small>Ücretsiz V1 • PDF raporlu saha denetim sistemi</small></header>
 <main>
 <section class="card"><h2>🏢 İşletme Bilgileri</h2><div class="grid">
 <label>İşletme / Bina Adı<input id="name"></label>
@@ -27,7 +28,7 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 </div><div class="actions noPrint">
 <button class="red" onclick="render()">📋 DENETİMİ BAŞLAT / KONULARI GÖSTER</button>
 <button class="dark" onclick="save()">💾 DENETİMİ KAYDET</button>
-<button class="green" onclick="window.print()">📄 PDF / YAZDIR</button>
+<button class="green" onclick="makePDF()">📄 PDF İNDİR</button>
 </div></section>
 <section class="card"><h2>📊 Denetim Özeti</h2><div class="stat">
 <div><b id="total">0</b><small>Toplam</small></div><div><b id="ok">0</b><small>Uygun</small></div><div><b id="bad">0</b><small>Uygunsuz</small></div><div><b id="score">0%</b><small>Uygunluk</small></div></div></section>
@@ -54,4 +55,53 @@ function update(){let a=[...document.querySelectorAll("[data-status]")],v=a.filt
 function save(){let rec={name:name.value,type:typeEl.value,address:address.value,date:date.value,inspector:inspector.value};let a=JSON.parse(localStorage.getItem("ydpro")||"[]");a.unshift(rec);localStorage.setItem("ydpro",JSON.stringify(a));load();alert("Denetim kaydedildi.")}
 function load(){let a=JSON.parse(localStorage.getItem("ydpro")||"[]");history.innerHTML=a.length?a.map(x=>`<div style="padding:8px;border-bottom:1px solid #eee"><b>${esc(x.name||"İsimsiz")}</b><br><small>${esc(x.type)} • ${esc(x.date||"")}</small></div>`).join(""):"Henüz kayıt yok."}
 typeEl.onchange=render;load();render();
+
+async function makePDF(){
+  const source=document.querySelector("main");
+  if(!source){ alert("Rapor alanı bulunamadı."); return; }
+
+  const name=(document.getElementById("name")?.value || "isimsiz-isletme")
+    .trim().replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ _-]/g,"").replace(/\s+/g,"-");
+  const date=(document.getElementById("date")?.value || new Date().toISOString().slice(0,10));
+
+  // Clone only the report area so navigation/buttons don't appear in the PDF.
+  const clone=source.cloneNode(true);
+  clone.querySelectorAll(".noPrint, button").forEach(e=>e.remove());
+
+  const wrap=document.createElement("div");
+  wrap.style.cssText="background:#fff;color:#111;padding:24px;width:794px;font-family:Arial,sans-serif;";
+  const title=document.createElement("div");
+  title.innerHTML=`<h1 style="margin:0 0 6px;text-align:center;">YANGIN DENETİM RAPORU</h1>
+  <div style="text-align:center;margin-bottom:18px;">Yangın Denetim Pro</div>`;
+  wrap.appendChild(title);
+  wrap.appendChild(clone);
+  document.body.appendChild(wrap);
+
+  // Give the browser a moment to render the cloned report.
+  await new Promise(r=>setTimeout(r,250));
+
+  if(typeof html2pdf !== "function"){
+    document.body.removeChild(wrap);
+    alert("PDF modülü yüklenemedi. İnternet bağlantınızı kontrol edip tekrar deneyin.");
+    return;
+  }
+
+  const opt={
+    margin:8,
+    filename:`Yangin-Denetim-Raporu-${name||"rapor"}-${date}.pdf`,
+    image:{type:"jpeg",quality:0.95},
+    html2canvas:{scale:1.5,useCORS:true,backgroundColor:"#ffffff"},
+    jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
+    pagebreak:{mode:["css","legacy"]}
+  };
+
+  try{
+    await html2pdf().set(opt).from(wrap).save();
+  }catch(e){
+    alert("PDF oluşturulamadı. Sayfayı yenileyip tekrar deneyin.");
+  }finally{
+    document.body.removeChild(wrap);
+  }
+}
+
 </script></body></html>
