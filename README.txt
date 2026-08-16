@@ -1,7 +1,4 @@
-Yangın Denetim Pro – PDF destekli V1
-
-Bu sürümde PDF / YAZDIR yerine gerçek "PDF İNDİR" düğmesi bulunur.
-PDF oluşturma için html2pdf.js CDN kullanılır; bu nedenle PDF oluştururken internet bağlantısı gerekir.
-iPhone'da PDF oluşturulduktan sonra dosya paylaşım/indirme ekranı açılabilir; Dosyalar > İndirilenler klasörüne kaydedilebilir.
-
-GitHub Pages'te mevcut index.html dosyasının yerine bu index.html yüklenmelidir.
+Yangın Denetim Pro PDF V2.
+PDF artık uygulamanın form ekranını kopyalamaz; temiz bir A4 yatay rapor oluşturur.
+İşletme bilgileri, özet, her kontrol maddesi, durum, risk, tespit, tedbir, genel değerlendirme ve imza alanları rapora aktarılır.
+Mevcut GitHub Pages index.html yerine bu index.html yüklenmelidir.

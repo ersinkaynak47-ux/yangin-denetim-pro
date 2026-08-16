@@ -17,6 +17,42 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 .note{background:#fff8e1;border:1px solid #f5c542;border-radius:10px;padding:10px;font-size:13px}
 @media(max-width:600px){.grid,.ig{grid-template-columns:1fr}.stat{grid-template-columns:1fr 1fr}}@media print{header,.noPrint{display:none!important}body{background:#fff}}
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style id="pdf-style">
+#pdf-report{position:fixed;left:-100000px;top:0;width:1120px;background:#fff;color:#111;font-family:Arial,sans-serif;font-size:10px}
+#pdf-report .pdf-page{background:#fff;padding:24px}
+#pdf-report .pdf-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #202b36;padding-bottom:12px;margin-bottom:12px}
+#pdf-report .pdf-title{font-size:22px;font-weight:800}
+#pdf-report .pdf-sub{font-size:11px;margin-top:4px;color:#555}
+#pdf-report .pdf-date{font-size:11px}
+#pdf-report .pdf-box{border:1px solid #bbb;padding:10px;margin:10px 0}
+#pdf-report h2{font-size:13px;margin:0 0 8px}
+#pdf-report .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+#pdf-report .info-grid div{border-bottom:1px solid #ddd;padding:5px}
+#pdf-report .info-grid b{display:block;font-size:9px;color:#555}
+#pdf-report .info-grid span{display:block;margin-top:2px}
+#pdf-report .score-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0}
+#pdf-report .score-grid div{text-align:center;border:1px solid #bbb;padding:8px}
+#pdf-report .score-grid b{font-size:16px;display:block}
+#pdf-report .score-grid small{font-size:9px;color:#555}
+#pdf-report .pdf-note{padding:7px;background:#f4f4f4;border:1px solid #ddd;margin-bottom:10px}
+#pdf-report .pdf-section{margin:12px 0;break-inside:auto}
+#pdf-report .pdf-section h3{font-size:12px;margin:0;padding:7px 8px;border:1px solid #aaa;border-bottom:0;background:#eee}
+#pdf-report table{width:100%;border-collapse:collapse;table-layout:fixed}
+#pdf-report th,#pdf-report td{border:1px solid #aaa;padding:5px;vertical-align:top;word-wrap:break-word}
+#pdf-report th{font-size:9px;background:#eee}
+#pdf-report td{font-size:8px}
+#pdf-report th:nth-child(1),#pdf-report td:nth-child(1){width:4%}
+#pdf-report th:nth-child(2),#pdf-report td:nth-child(2){width:28%}
+#pdf-report th:nth-child(3),#pdf-report td:nth-child(3){width:10%}
+#pdf-report th:nth-child(4),#pdf-report td:nth-child(4){width:10%}
+#pdf-report th:nth-child(5),#pdf-report td:nth-child(5){width:24%}
+#pdf-report th:nth-child(6),#pdf-report td:nth-child(6){width:24%}
+#pdf-report .general{min-height:70px;white-space:pre-wrap;border:1px solid #ddd;padding:8px}
+#pdf-report .sign{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:18px;break-inside:avoid}
+#pdf-report .footer{margin-top:18px;padding-top:7px;border-top:1px solid #bbb;text-align:center;font-size:8px;color:#666}
+</style>
+
 </head><body>
 <header><h1>🔥 Yangın Denetim Pro</h1><small>Ücretsiz V1 • PDF raporlu saha denetim sistemi</small></header>
 <main>
@@ -56,52 +92,122 @@ function save(){let rec={name:name.value,type:typeEl.value,address:address.value
 function load(){let a=JSON.parse(localStorage.getItem("ydpro")||"[]");history.innerHTML=a.length?a.map(x=>`<div style="padding:8px;border-bottom:1px solid #eee"><b>${esc(x.name||"İsimsiz")}</b><br><small>${esc(x.type)} • ${esc(x.date||"")}</small></div>`).join(""):"Henüz kayıt yok."}
 typeEl.onchange=render;load();render();
 
+
+
+
 async function makePDF(){
-  const source=document.querySelector("main");
-  if(!source){ alert("Rapor alanı bulunamadı."); return; }
+  const old=document.getElementById("pdf-report");
+  if(old) old.remove();
 
-  const name=(document.getElementById("name")?.value || "isimsiz-isletme")
-    .trim().replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ _-]/g,"").replace(/\s+/g,"-");
-  const date=(document.getElementById("date")?.value || new Date().toISOString().slice(0,10));
+  const escPdf=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+  const name=document.getElementById("name")?.value || "";
+  const type=document.getElementById("type")?.value || "";
+  const address=document.getElementById("address")?.value || "";
+  const date=document.getElementById("date")?.value || "";
+  const inspector=document.getElementById("inspector")?.value || "";
+  const phone=document.getElementById("phone")?.value || "";
+  const general=document.getElementById("general")?.value || "";
+  const follow=document.getElementById("follow")?.value || "";
 
-  // Clone only the report area so navigation/buttons don't appear in the PDF.
-  const clone=source.cloneNode(true);
-  clone.querySelectorAll(".noPrint, button").forEach(e=>e.remove());
+  const sections=DB[type] || [];
+  let no=0, total=0, answered=0, ok=0, bad=0;
+  let sectionsHtml="";
 
-  const wrap=document.createElement("div");
-  wrap.style.cssText="background:#fff;color:#111;padding:24px;width:794px;font-family:Arial,sans-serif;";
-  const title=document.createElement("div");
-  title.innerHTML=`<h1 style="margin:0 0 6px;text-align:center;">YANGIN DENETİM RAPORU</h1>
-  <div style="text-align:center;margin-bottom:18px;">Yangın Denetim Pro</div>`;
-  wrap.appendChild(title);
-  wrap.appendChild(clone);
-  document.body.appendChild(wrap);
+  sections.forEach(sec=>{
+    let rows="";
+    sec[1].forEach(q=>{
+      no++; total++;
+      const st=document.querySelector(`[data-status="${no}"]`)?.value || "İşaretlenmedi";
+      const risk=document.querySelector(`[data-risk="${no}"]`)?.value || "";
+      const note=document.querySelector(`[data-note="${no}"]`)?.value || "";
+      const action=document.querySelector(`[data-action="${no}"]`)?.value || "";
+      if(st && st!=="İşaretlenmedi" && st!=="Kapsam Dışı"){answered++; if(st==="Uygun")ok++; if(st==="Uygunsuz")bad;}
+      rows += `<tr>
+        <td class="no">${no}</td><td class="q">${escPdf(q)}</td>
+        <td class="status">${escPdf(st)}</td><td>${escPdf(risk)}</td>
+        <td>${escPdf(note)}</td><td>${escPdf(action)}</td>
+      </tr>`;
+    });
+    sectionsHtml += `<div class="pdf-section"><h3>${escPdf(sec[0])}</h3>
+      <table><thead><tr><th>No</th><th>Kontrol maddesi</th><th>Durum</th><th>Risk</th><th>Tespit</th><th>Tedbir</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+  });
 
-  // Give the browser a moment to render the cloned report.
-  await new Promise(r=>setTimeout(r,250));
+  let commonRows="";
+  COMMON.forEach(q=>{
+    no++; total++;
+    const st=document.querySelector(`[data-status="${no}"]`)?.value || "İşaretlenmedi";
+    const risk=document.querySelector(`[data-risk="${no}"]`)?.value || "";
+    const note=document.querySelector(`[data-note="${no}"]`)?.value || "";
+    const action=document.querySelector(`[data-action="${no}"]`)?.value || "";
+    if(st && st!=="İşaretlenmedi" && st!=="Kapsam Dışı"){answered++; if(st==="Uygun")ok++; if(st==="Uygunsuz")bad;}
+    commonRows += `<tr><td class="no">${no}</td><td class="q">${escPdf(q)}</td><td class="status">${escPdf(st)}</td><td>${escPdf(risk)}</td><td>${escPdf(note)}</td><td>${escPdf(action)}</td></tr>`;
+  });
+  sectionsHtml += `<div class="pdf-section"><h3>Ortak Kritik Kontroller</h3>
+    <table><thead><tr><th>No</th><th>Kontrol maddesi</th><th>Durum</th><th>Risk</th><th>Tespit</th><th>Tedbir</th></tr></thead>
+    <tbody>${commonRows}</tbody></table></div>`;
 
-  if(typeof html2pdf !== "function"){
-    document.body.removeChild(wrap);
-    alert("PDF modülü yüklenemedi. İnternet bağlantınızı kontrol edip tekrar deneyin.");
+  const score=answered ? Math.round(ok/answered*100) : 0;
+  const report=document.createElement("div");
+  report.id="pdf-report";
+  report.innerHTML=`
+  <div class="pdf-page">
+    <div class="pdf-head">
+      <div><div class="pdf-title">YANGIN DENETİM RAPORU</div><div class="pdf-sub">Yangın Denetim Pro • Saha Denetim Formu</div></div>
+      <div class="pdf-date">${escPdf(date)}</div>
+    </div>
+    <div class="pdf-box">
+      <h2>İşletme Bilgileri</h2>
+      <div class="info-grid">
+        <div><b>İşletme / Bina</b><span>${escPdf(name)||"-"}</span></div>
+        <div><b>Yapı Türü</b><span>${escPdf(type)||"-"}</span></div>
+        <div><b>Adres</b><span>${escPdf(address)||"-"}</span></div>
+        <div><b>Denetçi</b><span>${escPdf(inspector)||"-"}</span></div>
+        <div><b>Yetkili / Telefon</b><span>${escPdf(phone)||"-"}</span></div>
+        <div><b>Tekrar Denetim</b><span>${escPdf(follow)||"-"}</span></div>
+      </div>
+    </div>
+    <div class="score-grid">
+      <div><b>${total}</b><small>Toplam madde</small></div>
+      <div><b>${ok}</b><small>Uygun</small></div>
+      <div><b>${bad}</b><small>Uygunsuz</small></div>
+      <div><b>${score}%</b><small>Uygunluk</small></div>
+    </div>
+    <div class="pdf-note">Not: “İşaretlenmedi” durumundaki maddeler denetim sırasında değerlendirilmelidir.</div>
+    ${sectionsHtml}
+    <div class="pdf-box">
+      <h2>Genel Değerlendirme</h2>
+      <div class="general">${escPdf(general)||"—"}</div>
+    </div>
+    <div class="sign">
+      <div><b>Denetçi</b><br><br>________________________<br>${escPdf(inspector)||"Ad Soyad"}</div>
+      <div><b>Yetkili</b><br><br>________________________<br>${escPdf(phone)||"Ad Soyad / Telefon"}</div>
+    </div>
+    <div class="footer">Yangın Denetim Pro • Oluşturulma tarihi: ${new Date().toLocaleString("tr-TR")}</div>
+  </div>`;
+
+  document.body.appendChild(report);
+  await new Promise(r=>setTimeout(r,200));
+
+  if(typeof html2pdf!=="function"){
+    report.remove();
+    alert("PDF modülü yüklenemedi. İnternet bağlantısını kontrol edin.");
     return;
   }
 
-  const opt={
-    margin:8,
-    filename:`Yangin-Denetim-Raporu-${name||"rapor"}-${date}.pdf`,
-    image:{type:"jpeg",quality:0.95},
-    html2canvas:{scale:1.5,useCORS:true,backgroundColor:"#ffffff"},
-    jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
-    pagebreak:{mode:["css","legacy"]}
-  };
-
+  const fileBase=(name||"isimsiz-isletme").trim().replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ _-]/g,"").replace(/\s+/g,"-");
   try{
-    await html2pdf().set(opt).from(wrap).save();
+    await html2pdf().set({
+      margin:[8,8,10,8],
+      filename:`Yangin-Denetim-Raporu-${fileBase||"rapor"}-${date||""}.pdf`,
+      image:{type:"jpeg",quality:.96},
+      html2canvas:{scale:1.6,useCORS:true,backgroundColor:"#ffffff"},
+      jsPDF:{unit:"mm",format:"a4",orientation:"landscape"},
+      pagebreak:{mode:["css","legacy"]}
+    }).from(report).save();
   }catch(e){
     alert("PDF oluşturulamadı. Sayfayı yenileyip tekrar deneyin.");
-  }finally{
-    document.body.removeChild(wrap);
-  }
+  }finally{ report.remove(); }
 }
 
 </script></body></html>
