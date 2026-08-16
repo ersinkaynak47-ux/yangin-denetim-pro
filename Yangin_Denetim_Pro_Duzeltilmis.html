@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#202b36">
+<title>Yangın Denetim Pro</title>
+<style>
+body{margin:0;background:#f3f5f7;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;color:#17212b}
+header{background:#202b36;color:white;padding:18px;font-size:22px;font-weight:800}
+main{padding:12px;max-width:850px;margin:auto}
+.card{background:white;border-radius:14px;padding:15px;margin-bottom:12px;border:1px solid #ddd}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{font-weight:700;font-size:13px}
+input,select,textarea{width:100%;padding:12px;margin-top:5px;border:1px solid #ccd2d8;border-radius:10px;font-size:16px;box-sizing:border-box}
+textarea{min-height:70px}
+button{width:100%;padding:14px;border:0;border-radius:10px;background:#b42318;color:white;font-size:16px;font-weight:800;margin-top:10px}
+.topic{border:1px solid #d6dbe0;border-radius:12px;margin:10px 0;overflow:hidden}
+.topic h3{margin:0;padding:12px;background:#eef1f4;font-size:16px}
+.check{padding:12px;border-top:1px solid #e5e7ea}
+.check select,.check textarea{margin-bottom:6px}
+.hidden{display:none}
+.score{font-size:20px;font-weight:800;padding:12px;background:#eef8f1;border-radius:10px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>🔥 Yangın Denetim Pro</header>
+<main>
+
+<div class="card">
+<h2>İşletme Bilgileri</h2>
+<div class="grid">
+<label>İşletme / Bina Adı<input id="name"></label>
+<label>Yapı Türü
+<select id="type">
+<option value="APARTMAN / KONUT">APARTMAN / KONUT</option>
+<option value="SİTE / TOPLU KONUT">SİTE / TOPLU KONUT</option>
+<option value="İŞYERİ">İŞYERİ</option>
+<option value="RESTORAN / MUTFAK">RESTORAN / MUTFAK</option>
+<option value="OTEL / KONAKLAMA">OTEL / KONAKLAMA</option>
+<option value="DEPO">DEPO</option>
+</select></label>
+<label>Adres<input id="address"></label>
+<label>Denetim Tarihi<input id="date" type="date"></label>
+<label>Denetçi<input id="inspector"></label>
+<label>Yetkili / Telefon<input id="contact"></label>
+</div>
+<button id="start">📋 DENETİM KONULARINI GÖSTER</button>
+</div>
+
+<div class="card" id="topics">
+<h2>📋 Denetim Konuları</h2>
+<div id="score" class="score">Uygunluk: 0%</div>
+<div id="list"></div>
+</div>
+
+<div class="card">
+<h2>Genel Değerlendirme</h2>
+<textarea id="general" placeholder="Genel değerlendirme ve öneriler"></textarea>
+<label>Tekrar Denetim Tarihi<input id="follow" type="date"></label>
+<button onclick="window.print()">📄 PDF / YAZDIR</button>
+</div>
+
+</main>
+
+<script>
+const DATA = {
+"APARTMAN / KONUT":{
+"Genel Yangın Güvenliği":["İtfaiye araçlarının yaklaşım yolu açık.","Bina girişleri ve ortak alanlar açık.","Yangın güvenliği ile ilgili gerekli belgeler mevcut."],
+"Kaçış Yolları":["Koridorlar açık.","Merdivenler açık ve kullanılabilir.","Kaçış kapıları kolay açılabilir.","Acil aydınlatmalar çalışıyor.","Çıkış yönlendirmeleri görünür."],
+"Yangın Söndürme":["Uygun tipte yangın söndürücüler mevcut.","Söndürücülerin önü açık.","Periyodik bakım kayıtları mevcut."],
+"Elektrik":["Elektrik panoları uygun.","Panoların önü açık.","Hasarlı/açık kablo bulunmuyor."],
+"Bodrum / Otopark":["Kaçış yolları açık.","Yanıcı malzeme depolanmıyor.","Teknik alanlar düzenli."]
+},
+"SİTE / TOPLU KONUT":{
+"Site Genel Alanları":["İtfaiye araçları siteye ulaşabiliyor.","İtfaiye yolları açık.","Hidrantların önü açık.","Ortak alanlarda yanıcı malzeme yok."],
+"Yangın Sistemleri":["Yangın alarm paneli çalışıyor.","Dedektör ve ihbar butonları çalışıyor.","Yangın dolapları kullanılabilir.","Yangın pompaları çalışıyor.","Acil aydınlatma çalışıyor."],
+"Otopark / Teknik Alanlar":["Otopark kaçış yolları açık.","Jeneratör alanı uygun.","Trafo/kazan alanları uygun."],
+"Yönetim":["Acil durum planı mevcut.","Yangın ekipleri oluşturulmuş.","Eğitim ve tatbikat kayıtları mevcut."]
+},
+"İŞYERİ":{
+"Genel":["Faaliyet ve yangın riskleri belirlenmiş.","Acil durum planı mevcut.","Gerekli belgeler mevcut."],
+"Kaçış / Tahliye":["Kaçış yolları açık.","Acil çıkışlar işaretli.","Acil aydınlatmalar çalışıyor.","Tahliye planı görünür."],
+"Elektrik":["Elektrik panoları uygun.","Kablolar korunmuş."],
+"Söndürme":["Uygun tipte söndürücüler mevcut.","Yangın dolabı/alarm çalışıyor."]
+},
+"RESTORAN / MUTFAK":{
+"Mutfak":["Ocak çevresi temiz.","Davlumbaz filtreleri temiz.","Davlumbaz kanallarında aşırı yağ yok.","Baca temizliği yapılmış.","Gaz bağlantıları uygun.","Ana gaz kesme vanası erişilebilir."],
+"Söndürme":["Mutfak söndürücüsü uygun.","Davlumbaz söndürme sistemi çalışıyor.","Yangın alarmı çalışıyor."],
+"Salon":["Masa ve sandalyeler kaçışı daraltmıyor.","Acil çıkışlar görünür."],
+"Depolama":["Yanıcı malzeme ısı kaynaklarından uzak.","Kaçış yollarında depolama yok."]
+},
+"OTEL / KONAKLAMA":{
+"Genel":["Yangın güvenliği sorumluları belirlenmiş.","Acil durum planı mevcut.","Eğitim/tatbikat kayıtları mevcut."],
+"Odalar":["Kaçış yönlendirmeleri mevcut.","Duman dedektörleri çalışıyor.","Koridorlar açık."],
+"Alarm":["Alarm paneli aktif.","Dedektör ve ihbar butonları çalışıyor.","Sirenler çalışıyor."],
+"Yangın Merdivenleri":["Yangın merdivenleri kullanılabilir.","Yangın kapıları kapanıyor.","Acil aydınlatma çalışıyor."],
+"Mutfak":["Davlumbaz ve kanallar temiz.","Gaz kesme ve söndürme sistemi çalışıyor."],
+"Teknik Alanlar":["Kazan/jeneratör/trafo alanları uygun."]
+},
+"DEPO":{
+"Depolama":["Yangın tehlike sınıfı belirlenmiş.","Raf ve depolama düzeni uygun.","Sprinkler ile gerekli boşluk korunuyor.","Yanıcı malzemeler uygun ayrılmış.","Kaçış yolları açık."],
+"Söndürme":["Yangın söndürücüler erişilebilir.","Sprinkler sistemi çalışıyor.","Yangın pompaları çalışıyor.","Yangın alarmı çalışıyor."],
+"Elektrik":["Elektrik panoları uygun.","Uygunsuz geçici tesisat yok."],
+"Şarj Alanı":["Akü şarj alanı ayrılmış.","Şarj alanında yanıcı malzeme yok."],
+"Yangın Bölmeleri":["Yangın kapıları bütün.","Tesisat geçişleri korunmuş."]
+}
+};
+
+const COMMON=[
+"Kaçış yolunun ciddi şekilde kapatılması.",
+"Yangın merdiveninin kullanılamaz olması.",
+"Acil çıkış kapısının kilitli olması.",
+"Yangın kapılarının sürekli açık tutulması.",
+"Elektrik panosunda ciddi ısınma/yanma.",
+"Gaz kaçağı şüphesi.",
+"Davlumbaz/bacada yoğun yağ birikimi.",
+"Yangın alarm sisteminin devre dışı olması.",
+"Sprinkler sisteminin devre dışı olması.",
+"Yangın pompasının çalışmaması.",
+"Yanıcı maddelerin kaçış yollarında depolanması.",
+"İtfaiye araçlarının yaklaşımının engellenmesi."
+];
+
+const typeEl=document.getElementById("type");
+const list=document.getElementById("list");
+const score=document.getElementById("score");
+
+function render(){
+ const type=typeEl.value;
+ const groups=DATA[type];
+ let html="", n=0;
+ for(const section in groups){
+   html += '<div class="topic"><h3>'+section+'</h3>';
+   groups[section].forEach(text=>{
+     n++;
+     html += '<div class="check"><b>'+n+'. '+text+'</b>'+
+       '<select class="status"><option value="">Durum seç</option><option>Uygun</option><option>Uygunsuz</option><option>Kısmen Uygun</option><option>Mevcut Değil</option><option>Kapsam Dışı</option></select>'+
+       '<select class="risk"><option>Risk seç</option><option>Yüksek</option><option>Orta</option><option>Düşük</option></select>'+
+       '<textarea placeholder="Tespit / açıklama"></textarea>'+
+       '<textarea placeholder="Önerilen tedbir"></textarea>'+
+       '<label>📷 Fotoğraf<input type="file" accept="image/*" capture="environment"></label>'+
+       '</div>';
+   });
+   html+='</div>';
+ }
+ html+='<div class="topic"><h3>🔴 Ortak Kritik Kontroller</h3>';
+ COMMON.forEach(text=>{
+   n++;
+   html+='<div class="check"><b>'+n+'. '+text+'</b>'+
+   '<select class="status"><option value="">Durum seç</option><option>Uygun</option><option>Uygunsuz</option><option>Kısmen Uygun</option><option>Mevcut Değil</option><option>Kapsam Dışı</option></select>'+
+   '<select class="risk"><option selected>Kritik</option><option>Yüksek</option><option>Orta</option><option>Düşük</option></select>'+
+   '<textarea placeholder="Tespit / açıklama"></textarea><textarea placeholder="Önerilen tedbir"></textarea>'+
+   '<label>📷 Fotoğraf<input type="file" accept="image/*" capture="environment"></label></div>';
+ });
+ html+='</div>';
+ list.innerHTML=html;
+ update();
+}
+
+function update(){
+ const statuses=[...document.querySelectorAll(".status")];
+ const applicable=statuses.filter(x=>x.value && x.value!=="Kapsam Dışı");
+ const ok=applicable.filter(x=>x.value==="Uygun").length;
+ const bad=applicable.filter(x=>x.value==="Uygunsuz").length;
+ const pct=applicable.length?Math.round(ok/applicable.length*100):0;
+ score.textContent="Uygun: "+ok+" | Uygunsuz: "+bad+" | Uygunluk: "+pct+"%";
+}
+
+typeEl.addEventListener("change",render);
+document.getElementById("start").addEventListener("click",render);
+list.addEventListener("change",update);
+
+document.getElementById("date").value=new Date().toISOString().slice(0,10);
+render();
+</script>
+</body>
+</html>
