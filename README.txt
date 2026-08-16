@@ -1,4 +1,3 @@
-Yangın Denetim Pro PDF V2.
-PDF artık uygulamanın form ekranını kopyalamaz; temiz bir A4 yatay rapor oluşturur.
-İşletme bilgileri, özet, her kontrol maddesi, durum, risk, tespit, tedbir, genel değerlendirme ve imza alanları rapora aktarılır.
-Mevcut GitHub Pages index.html yerine bu index.html yüklenmelidir.
+PDF V3 – iPhone Safari düzeltmesi.
+Rapor artık ekran dışında gizlenmez; html2canvas'ın iOS'ta boş PDF üretmesini önlemek için görünür render alanında oluşturulur.
+PDF Blob olarak oluşturulup yeni Safari sekmesinde açılır. Açılan PDF'de Paylaş > Dosyalara Kaydet ile kaydedilebilir.

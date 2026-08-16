@@ -19,7 +19,7 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style id="pdf-style">
-#pdf-report{position:fixed;left:-100000px;top:0;width:1120px;background:#fff;color:#111;font-family:Arial,sans-serif;font-size:10px}
+#pdf-report{position:absolute;left:0;top:0;width:1120px;background:#fff;color:#111;font-family:Arial,sans-serif;font-size:10px}
 #pdf-report .pdf-page{background:#fff;padding:24px}
 #pdf-report .pdf-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #202b36;padding-bottom:12px;margin-bottom:12px}
 #pdf-report .pdf-title{font-size:22px;font-weight:800}
@@ -64,7 +64,7 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 </div><div class="actions noPrint">
 <button class="red" onclick="render()">📋 DENETİMİ BAŞLAT / KONULARI GÖSTER</button>
 <button class="dark" onclick="save()">💾 DENETİMİ KAYDET</button>
-<button class="green" onclick="makePDF()">📄 PDF İNDİR</button>
+<button class="green" onclick="makePDF()">📄 PDF İNDİR / AÇ</button>
 </div></section>
 <section class="card"><h2>📊 Denetim Özeti</h2><div class="stat">
 <div><b id="total">0</b><small>Toplam</small></div><div><b id="ok">0</b><small>Uygun</small></div><div><b id="bad">0</b><small>Uygunsuz</small></div><div><b id="score">0%</b><small>Uygunluk</small></div></div></section>
@@ -197,17 +197,30 @@ async function makePDF(){
 
   const fileBase=(name||"isimsiz-isletme").trim().replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ _-]/g,"").replace(/\s+/g,"-");
   try{
-    await html2pdf().set({
+    const worker=html2pdf().set({
       margin:[8,8,10,8],
       filename:`Yangin-Denetim-Raporu-${fileBase||"rapor"}-${date||""}.pdf`,
       image:{type:"jpeg",quality:.96},
-      html2canvas:{scale:1.6,useCORS:true,backgroundColor:"#ffffff"},
+      html2canvas:{scale:1.25,useCORS:true,backgroundColor:"#ffffff",logging:false},
       jsPDF:{unit:"mm",format:"a4",orientation:"landscape"},
       pagebreak:{mode:["css","legacy"]}
-    }).from(report).save();
+    }).from(report);
+
+    const blob=await worker.outputPdf("blob");
+    report.remove();
+
+    // iOS Safari handles Blob URLs more reliably when opened in a new tab.
+    const url=URL.createObjectURL(blob);
+    const w=window.open(url,"_blank");
+    if(!w){
+      // Fallback: navigate current tab to the PDF.
+      window.location.href=url;
+    }
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
   }catch(e){
-    alert("PDF oluşturulamadı. Sayfayı yenileyip tekrar deneyin.");
-  }finally{ report.remove(); }
+    report.remove();
+    alert("PDF oluşturulamadı. Safari'de sayfayı yenileyip tekrar deneyin.");
+  }
 }
 
 </script></body></html>
