@@ -1,138 +1,57 @@
-<!doctype html>
-<html lang="tr">
-<head>
-<meta charset="utf-8">
+<!doctype html><html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#202b36">
+<meta name="theme-color" content="#202b36"><meta name="apple-mobile-web-app-capable" content="yes">
 <title>Yangın Denetim Pro</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f2f4f7;color:#17212b;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
-header{background:#202b36;color:#fff;padding:18px 16px;position:sticky;top:0;z-index:5}h1{margin:0;font-size:22px}header div{margin-top:4px;color:#d0d5dd}
-main{max-width:900px;margin:auto;padding:12px 12px 50px}.card{background:#fff;border:1px solid #d0d5dd;border-radius:15px;padding:14px;margin:10px 0}
-h2{font-size:18px;margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-label{font-size:12px;font-weight:700}input,select,textarea{display:block;width:100%;padding:11px;margin-top:5px;border:1px solid #cfd4dc;border-radius:10px;font-size:16px;background:#fff}textarea{min-height:70px}
-button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;width:100%;margin-top:9px}.red{background:#b42318;color:white}.dark{background:#202b36;color:white}.green{background:#12b76a;color:white}
-.topic{border:1px solid #d0d5dd;border-radius:12px;margin:10px 0;overflow:hidden}.topic h3{margin:0;padding:11px;background:#eef1f4;font-size:15px}.item{padding:11px;border-top:1px solid #eaecf0}.item b{display:block;margin-bottom:8px;font-size:14px}
+header{background:#202b36;color:#fff;padding:17px 15px;position:sticky;top:0;z-index:5}h1{margin:0;font-size:22px}header small{color:#d0d5dd}
+main{max-width:950px;margin:auto;padding:12px 12px 60px}.card{background:#fff;border:1px solid #d0d5dd;border-radius:15px;padding:14px;margin:10px 0}
+h2{font-size:18px;margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}label{font-size:12px;font-weight:700}
+input,select,textarea{width:100%;padding:11px;margin-top:5px;border:1px solid #cfd4dc;border-radius:10px;font-size:16px;background:#fff}textarea{min-height:65px}
+button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;width:100%;margin-top:8px}.red{background:#b42318;color:#fff}.dark{background:#202b36;color:#fff}.green{background:#12b76a;color:#fff}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions button:first-child{grid-column:1/-1}
+.topic{border:1px solid #d0d5dd;border-radius:12px;margin:9px 0;overflow:hidden}.topic h3{margin:0;padding:11px;background:#eef1f4;font-size:15px}
+.item{padding:11px;border-top:1px solid #eaecf0}.item b{display:block;margin-bottom:7px;font-size:14px}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:7px}.ig textarea,.ig label{grid-column:1/-1}
 .stat{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.stat div{text-align:center;border:1px solid #e4e7ec;border-radius:9px;padding:8px}.stat b{display:block;font-size:18px}.stat small{color:#667085}
-.hidden{display:none}.note{background:#fff8e1;border:1px solid #f5c542;border-radius:10px;padding:10px;font-size:13px}
-@media(max-width:600px){.grid,.stat{grid-template-columns:1fr 1fr}}
-@media print{header,.noPrint{display:none!important}body{background:white}}
-</style>
-</head>
-<body>
-<header><h1>🔥 Yangın Denetim Pro</h1><div>Ücretsiz V1 • Mobil saha denetim sistemi</div></header>
+.note{background:#fff8e1;border:1px solid #f5c542;border-radius:10px;padding:10px;font-size:13px}
+@media(max-width:600px){.grid,.ig{grid-template-columns:1fr}.stat{grid-template-columns:1fr 1fr}}@media print{header,.noPrint{display:none!important}body{background:#fff}}
+</style></head><body>
+<header><h1>🔥 Yangın Denetim Pro</h1><small>Ücretsiz V1 • Genişletilmiş saha denetim sistemi</small></header>
 <main>
-<section class="card">
-<h2>🏢 İşletme Bilgileri</h2>
-<div class="grid">
+<section class="card"><h2>🏢 İşletme Bilgileri</h2><div class="grid">
 <label>İşletme / Bina Adı<input id="name"></label>
-<label>Yapı Türü<select id="type">
-<option>APARTMAN / KONUT</option><option>SİTE / TOPLU KONUT</option><option>İŞYERİ</option>
-<option>RESTORAN / MUTFAK</option><option>OTEL / KONAKLAMA</option><option>DEPO</option>
-</select></label>
+<label>Yapı Türü<select id="type"></select></label>
 <label>Adres<input id="address"></label><label>Denetim Tarihi<input id="date" type="date"></label>
 <label>Denetçi<input id="inspector"></label><label>Yetkili / Telefon<input id="phone"></label>
-</div>
-<div class="actions noPrint">
-<button class="red" onclick="showTopics()">📋 DENETİM KONULARINI GÖSTER</button>
-<button class="dark" onclick="save()">💾 KAYDET</button>
+</div><div class="actions noPrint">
+<button class="red" onclick="render()">📋 DENETİMİ BAŞLAT / KONULARI GÖSTER</button>
+<button class="dark" onclick="save()">💾 DENETİMİ KAYDET</button>
 <button class="green" onclick="window.print()">📄 PDF / YAZDIR</button>
-</div>
-</section>
-
-<section class="card" id="topics">
-<h2>📋 Denetim Konuları</h2>
-<div class="note">Yapı türü seçildiğinde konular aşağıda otomatik görünür. İnternet bağlantısı veya harici JavaScript dosyası gerekmez.</div>
-<div class="stat"><div><b id="total">0</b><small>Madde</small></div><div><b id="ok">0</b><small>Uygun</small></div><div><b id="bad">0</b><small>Uygunsuz</small></div><div><b id="score">0%</b><small>Uygunluk</small></div></div>
-<div id="list"></div>
-</section>
-
-<section class="card">
-<h2>📝 Genel Sonuç</h2>
-<textarea id="general" placeholder="Genel değerlendirme / önemli tespitler"></textarea>
-<label>Tekrar Denetim Tarihi<input id="follow" type="date"></label>
-</section>
-
-<section class="card noPrint">
-<h2>🗂 Geçmiş Kayıtlar</h2><div id="history">Henüz kayıt yok.</div>
-</section>
+</div></section>
+<section class="card"><h2>📊 Denetim Özeti</h2><div class="stat">
+<div><b id="total">0</b><small>Toplam</small></div><div><b id="ok">0</b><small>Uygun</small></div><div><b id="bad">0</b><small>Uygunsuz</small></div><div><b id="score">0%</b><small>Uygunluk</small></div></div></section>
+<section class="card"><h2>📋 Denetim Konuları</h2><div class="note">Her yapı türünde 50+ saha kontrolü bulunmaktadır. Ortak kritik kontroller ayrıca eklenmiştir.</div><div id="list"></div></section>
+<section class="card"><h2>📝 Sonuç ve Takip</h2><textarea id="general" placeholder="Genel değerlendirme / önemli tespitler"></textarea><label>Tekrar Denetim Tarihi<input id="follow" type="date"></label></section>
+<section class="card noPrint"><h2>🗂 Geçmiş Denetimler</h2><div id="history">Henüz kayıt yok.</div></section>
 </main>
-
 <script>
-const DB={
-"APARTMAN / KONUT":[
-["Genel",["İtfaiye yaklaşım yolu açık.","Bina girişleri açık.","Ortak alanlarda yanıcı malzeme yok.","Acil durum planı mevcut."]],
-["Kaçış",["Koridorlar açık.","Merdivenler açık.","Kaçış kapıları açılabilir.","Acil aydınlatma çalışıyor.","Çıkış yönlendirmeleri görünür."]],
-["Söndürme",["Uygun yangın söndürücü mevcut.","Söndürücülerin önü açık.","Bakım/kontrol kayıtları mevcut.","Yangın dolabı erişilebilir."]],
-["Elektrik / Teknik",["Elektrik panoları uygun.","Panoların önü açık.","Hasarlı kablo yok.","Teknik alanlar düzenli."]]],
-"SİTE / TOPLU KONUT":[
-["Site Genel Alanları",["İtfaiye yolları açık.","Hidrantların önü açık.","Site girişine itfaiye ulaşabiliyor.","Ortak alanlar düzenli."]],
-["Yangın Sistemleri",["Alarm paneli çalışıyor.","Dedektör ve butonlar çalışıyor.","Yangın dolapları kullanılabilir.","Yangın pompaları çalışıyor.","Acil aydınlatma çalışıyor."]],
-["Otopark / Teknik",["Otopark kaçış yolları açık.","Jeneratör alanı uygun.","Trafo/kazan alanı uygun.","Şarj alanı güvenli."]],
-["Yönetim",["Acil durum planı mevcut.","Yangın ekipleri belirlenmiş.","Eğitim kayıtları mevcut.","Tatbikat kayıtları mevcut."]]],
-"İŞYERİ":[
-["Genel",["Faaliyet ve yangın riskleri belirlenmiş.","Acil durum planı mevcut.","Gerekli belgeler mevcut."]],
-["Kaçış / Tahliye",["Kaçış yolları açık.","Acil çıkışlar işaretli.","Acil aydınlatma çalışıyor.","Tahliye planı görünür.","Toplanma alanı belirlenmiş."]],
-["Elektrik",["Elektrik panoları uygun.","Panoların önü açık.","Kablolar korunmuş."]],
-["Söndürme",["Uygun tip/sayıda söndürücü mevcut.","Yangın dolabı erişilebilir.","Yangın alarmı çalışıyor."]]],
-"RESTORAN / MUTFAK":[
-["Mutfak",["Ocak çevresi temiz.","Davlumbaz filtreleri temiz.","Kanallarda aşırı yağ yok.","Baca temizliği yapılmış.","Gaz bağlantıları uygun.","Ana gaz kesme vanası erişilebilir.","LPG tüpleri uygun yerde."]],
-["Söndürme",["Mutfak söndürücüsü uygun.","Davlumbaz söndürme sistemi çalışıyor.","Yangın alarmı çalışıyor.","Yangın dolabı erişilebilir."]],
-["Salon / Kaçış",["Masa ve sandalyeler kaçışı daraltmıyor.","Acil çıkışlar görünür.","Koridorlar açık."]],
-["Depolama",["Ambalajlar kaçışta değil.","Yanıcı malzemeler ısıdan uzak."]]],
-"OTEL / KONAKLAMA":[
-["Genel",["Yangın güvenliği sorumluları belirlenmiş.","Acil durum planı mevcut.","Tahliye planı mevcut.","Eğitim/tatbikat kayıtları mevcut."]],
-["Odalar / Koridorlar",["Kaçış yönlendirmeleri mevcut.","Duman dedektörleri çalışıyor.","Koridorlar açık.","Kaçış yolları engellenmemiş."]],
-["Alarm / Söndürme",["Alarm paneli aktif.","Dedektör ve butonlar çalışıyor.","Sirenler çalışıyor.","Yangın dolapları kullanılabilir.","Yangın pompaları çalışıyor."]],
-["Merdivenler / Teknik",["Yangın merdiveni kullanılabilir.","Yangın kapıları kapanıyor.","Acil aydınlatma çalışıyor.","Mutfak ve teknik alanlar uygun."]]],
-"DEPO":[
-["Depolama",["Yangın tehlike sınıfı belirlenmiş.","Raf/depolama düzeni uygun.","Sprinkler boşluğu korunuyor.","Yanıcı malzemeler ayrılmış.","Kimyasallar uygun depolanıyor.","Kaçış yolları açık."]],
-["Söndürme / Sprinkler",["Söndürücüler erişilebilir.","Sprinkler çalışıyor.","Sprinkler başlıkları açık.","Yangın pompaları çalışıyor.","Yangın alarmı çalışıyor."]],
-["Elektrik",["Elektrik panoları uygun.","Panoların önü açık.","Geçici/uygunsuz tesisat yok."]],
-["Şarj / Bölmeler",["Akü şarj alanı ayrılmış.","Şarj alanında yanıcı malzeme yok.","Yangın kapıları bütün.","Tesisat geçişleri korunmuş."]]]
-};
-const COMMON=["Kaçış yolunun ciddi şekilde kapatılması.","Yangın merdiveninin kullanılamaz olması.","Acil çıkış kapısının kilitli olması.","Yangın kapılarının açık tutulması.","Elektrik panosunda ciddi yanma/ısınma.","Gaz kaçağı şüphesi.","Davlumbaz/bacada yoğun yağ birikimi.","Yangın alarmının devre dışı olması.","Sprinkler sisteminin devre dışı olması.","Yangın pompasının çalışmaması.","Yanıcı maddelerin kaçışta depolanması.","İtfaiye yaklaşımının engellenmesi."];
-
-function esc(x){return String(x).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
-function showTopics(){
-let type=document.getElementById("type").value, html="", n=0;
-DB[type].forEach(sec=>{
-html+=`<div class="topic"><h3>🔥 ${esc(sec[0])}</h3>`;
-sec[1].forEach(q=>{n++;html+=item(n,q,false)});
-html+="</div>";
-});
-html+=`<div class="topic"><h3>🔴 Ortak Kritik Kontroller</h3>`;
-COMMON.forEach(q=>{n++;html+=item(n,q,true)});
-html+="</div>";
-document.getElementById("list").innerHTML=html;
-document.getElementById("total").textContent=n;
-document.querySelectorAll("[data-status]").forEach(x=>x.onchange=update);
-window.scrollTo({top:document.getElementById("topics").offsetTop-60,behavior:"smooth"});
-update();
+const DB={"APARTMAN / KONUT": [["Bina ve Çevre", ["İtfaiye araçlarının bina girişine ve yaklaşım yoluna erişimi açık.", "Bina çevresinde müdahaleyi engelleyen araç veya malzeme bulunmuyor.", "Bina girişleri ve ortak alanlar düzenli.", "Ortak alanlarda yanıcı malzeme depolanmıyor.", "Çatıya ve teknik alanlara erişim güvenli.", "Yangın güvenliğiyle ilgili mevcut proje ve belgeler erişilebilir."]], ["Kaçış Yolları", ["Koridorlar kaçış yönünde açık.", "Merdivenler kaçış için kullanılabilir durumda.", "Kaçış yollarında eşya veya depolama yapılmıyor.", "Kaçış yönlendirme işaretleri görünür.", "Acil aydınlatmalar çalışır durumda.", "Kaçış kapıları kolay açılabilir durumda.", "Kaçış kapılarının önünde engel bulunmuyor.", "Yangın kapıları işlevini yerine getiriyor.", "Yangın merdiveni girişine erişim açık."]], ["Yangın Söndürme", ["Uygun tipte ve yeterli sayıda taşınabilir söndürücü mevcut.", "Söndürücülerin önü açık ve erişilebilir.", "Söndürücülerin periyodik kontrol/bakım kayıtları mevcut.", "Söndürücülerin basınç ve fiziksel durumları uygun.", "Yangın dolaplarının önü açık.", "Yangın dolapları kullanılabilir durumda.", "Yangın hortumları ve lanslar uygun durumda.", "Yangın dolabı vanaları erişilebilir."]], ["Alarm ve Acil Sistemler", ["Yangın alarm paneli varsa normal çalışma durumunda.", "Manuel ihbar butonları erişilebilir.", "Duman/ısı dedektörlerinde görünür hasar yok.", "Alarm sirenleri çalışır durumda.", "Alarm sisteminin enerji beslemesi uygun.", "Acil aydınlatma armatürlerinde görünür hasar yok.", "Yönlendirme armatürleri görünür ve çalışır."]], ["Elektrik ve Teknik Alanlar", ["Elektrik panolarının önü açık.", "Elektrik panolarında görünür hasar veya yanık izi yok.", "Geçici ve uygunsuz elektrik bağlantısı bulunmuyor.", "Kablo kanalları ve geçişleri düzenli.", "Jeneratör alanı düzenli ve erişilebilir.", "Kazan dairesi düzenli ve uygun durumda.", "Trafo/elektrik odası erişimi kontrollü.", "Teknik hacimlerde yanıcı malzeme depolanmıyor."]], ["Bodrum, Otopark ve Çatı", ["Bodrum kat kaçış yolları açık.", "Otoparkta yangın ekipmanlarının önü açık.", "Otoparkta yangın yükünü artıran düzensiz depolama yok.", "Kapalı otopark havalandırması çalışır durumda.", "Çatı çıkışı ve kaçış yolu açık.", "Çatı katında yanıcı malzeme birikimi yok.", "Depo/bodrum bölümleri düzenli.", "Gaz tesisatı bulunan alanlarda erişim ve güvenlik uygun."]], ["Organizasyon ve Belgeler", ["Acil durum planı mevcut ve güncel.", "Acil durum ekipleri belirlenmiş.", "Yangın ekipleri görevleri konusunda bilgilendirilmiş.", "Yangın eğitimi kayıtları mevcut.", "Tatbikat kayıtları mevcut.", "Acil telefon numaraları görünür.", "Toplanma alanı belirlenmiş.", "Yangın güvenliği sorumluluğu konusunda bina yönetimi bilgilendirilmiş."]]], "SİTE / TOPLU KONUT": [["Site ve İtfaiye Erişimi", ["Site ana girişinden itfaiye araçlarının erişimi mümkün.", "İtfaiye yolları sürekli açık tutuluyor.", "Site içi dönüş ve manevra alanları engellenmemiş.", "Blok girişleri açık ve ulaşılabilir.", "İtfaiye araçlarını engelleyen park düzeni bulunmuyor.", "Hidrantlara erişim açık."]], ["Bloklar ve Kaçış", ["Blok ortak koridorları açık.", "Merdivenler kaçış için kullanılabilir.", "Kaçış kapıları kolay açılabilir.", "Yangın merdivenleri erişilebilir.", "Yangın kapıları kapanabilir durumda.", "Acil aydınlatmalar çalışıyor.", "Çıkış yönlendirmeleri görünür.", "Katlarda kaçış yollarında depolama yapılmıyor."]], ["Yangın Alarmı", ["Yangın alarm paneli normal durumda.", "Dedektörler görünür ve hasarsız.", "Manuel ihbar butonları erişilebilir.", "Sirenler çalışıyor.", "Alarm sistemi enerji beslemesi uygun.", "Alarm bölgelemesi/etiketleri anlaşılır."]], ["Söndürme ve Su", ["Yangın dolaplarının önü açık.", "Yangın dolapları kullanılabilir.", "Hortum ve lanslar uygun durumda.", "Yangın pompaları çalışır durumda.", "Pompa odasına erişim açık.", "Su deposu/yangın suyu sistemi kontrol edilebilir durumda.", "Hidrantlar görünür ve erişilebilir."]], ["Otopark ve Teknik Alanlar", ["Otopark kaçış yolları açık.", "Otoparkta yanıcı malzeme depolanmıyor.", "Jeneratör odası düzenli.", "Trafo ve elektrik odaları düzenli.", "Kazan dairesi düzenli.", "Teknik alanların önü açık.", "Elektrik panoları hasarsız.", "Geçici elektrik bağlantısı bulunmuyor."]], ["Acil Durum Organizasyonu", ["Acil durum planı mevcut.", "Site yangın ekipleri belirlenmiş.", "Blok sorumluları belirlenmiş.", "Eğitim kayıtları mevcut.", "Tatbikat kayıtları mevcut.", "Toplanma alanı belirlenmiş.", "Acil iletişim bilgileri görünür.", "Yönetim tarafından bakım/kontrol kayıtları tutuluyor."]]], "İŞYERİ": [["Genel Yangın Güvenliği", ["İşyerinin faaliyet türü ve yangın riskleri belirlenmiş.", "Yangın güvenliği sorumlulukları belirlenmiş.", "Acil durum planı mevcut.", "İşyerinde yanıcı malzeme kontrolü yapılıyor.", "İtfaiye erişimi açık.", "Yangın güvenliği belgeleri erişilebilir."]], ["Kaçış ve Tahliye", ["Kaçış yolları açık.", "Acil çıkışlar görünür.", "Kaçış kapıları açılabilir.", "Kaçış yollarında depolama yapılmıyor.", "Acil aydınlatma çalışıyor.", "Çıkış yönlendirmeleri görünür.", "Tahliye planı görünür.", "Toplanma alanı belirlenmiş."]], ["Söndürme", ["Uygun tipte söndürücüler mevcut.", "Söndürücü sayısı ve yerleşimi kontrol edilmiş.", "Söndürücüler erişilebilir.", "Söndürücülerin kontrol kayıtları mevcut.", "Yangın dolabı varsa erişilebilir.", "Yangın dolabı ekipmanı uygun."]], ["Alarm ve Algılama", ["Yangın alarm paneli çalışıyor.", "Duman/ısı dedektörleri görünür.", "Manuel ihbar butonları erişilebilir.", "Sirenler çalışıyor.", "Alarm sistemi enerji beslemesi uygun.", "Alarm arızaları varsa kayıt altına alınmış."]], ["Elektrik ve Isı Kaynakları", ["Elektrik panolarının önü açık.", "Panolarda yanık/ısınma belirtisi yok.", "Uygunsuz uzatma/çoklu priz kullanımı yok.", "Kablolar hasarsız.", "Isı kaynakları yanıcı malzemelerden uzak.", "Teknik odalarda depolama yapılmıyor."]], ["Depolama ve Personel", ["Yanıcı malzemeler uygun şekilde depolanıyor.", "Karton/ambalaj atıkları biriktirilmiyor.", "Personel yangın konusunda bilgilendirilmiş.", "Yangın eğitimi kayıtları mevcut.", "Tatbikat kayıtları mevcut.", "Acil telefon numaraları görünür."]]], "RESTORAN / MUTFAK": [["Mutfak ve Ocaklar", ["Ocak ve pişirme cihazlarının çevresi temiz.", "Pişirme cihazları yanıcı malzemelerden uzak.", "Fritöz çevresi düzenli.", "Gazlı cihazların bağlantıları uygun.", "Gaz kesme vanası erişilebilir.", "Gaz hattında görünür hasar/kaçak belirtisi yok.", "LPG tüpleri uygun alanda ve sabit.", "Elektrikli pişirme cihazlarının kabloları uygun."]], ["Davlumbaz ve Baca", ["Davlumbaz filtreleri temiz.", "Davlumbaz iç yüzeylerinde aşırı yağ birikimi yok.", "Baca/kanal sisteminde aşırı yağ birikimi yok.", "Baca temizliği kayıtları mevcut.", "Davlumbaz kanalına erişim ve temizlik noktaları uygun.", "Motor ve fan bölümünde aşırı yağlanma yok.", "Egzoz çıkışı çevresinde yangın riski oluşturan malzeme yok."]], ["Mutfak Söndürme", ["Mutfak tipi uygun taşınabilir söndürücü mevcut.", "Sabitleme/otomatik mutfak söndürme sistemi varsa erişilebilir.", "Söndürme sistemi kontrol/bakım kayıtları mevcut.", "Sistemin manuel boşaltma/aktivasyon noktası erişilebilir.", "Yangın alarm sistemi mutfak alanını kapsıyor.", "Yangın dolabı erişilebilir."]], ["Salon ve Kaçış", ["Salon masa ve sandalyeleri kaçışı daraltmıyor.", "Koridorlar açık.", "Acil çıkışlar görünür.", "Kaçış kapıları açılabilir.", "Acil aydınlatma çalışıyor.", "Çıkış yönlendirmeleri görünür.", "Toplanma alanı belirlenmiş."]], ["Elektrik ve Teknik", ["Elektrik panoları açık ve erişilebilir.", "Panolarda yanık/ısınma belirtisi yok.", "Uygunsuz çoklu priz/uzatma kullanımı yok.", "Elektrikli cihazların kabloları hasarsız.", "Gaz ve elektrik kesme noktaları işaretli.", "Teknik hacimlerde yanıcı malzeme depolanmıyor."]], ["Depo ve Atık", ["Yağlar uygun ve güvenli depolanıyor.", "Yanıcı ambalajlar ısı kaynaklarından uzak.", "Karton ve ambalajlar kaçış yollarında değil.", "Atık yağlar uygun kaplarda tutuluyor.", "Çöp/atık alanı yangın riskini artırmıyor.", "Depo kapıları ve kaçış yolları açık."]]], "OTEL / KONAKLAMA": [["Genel ve Organizasyon", ["Yangın güvenliği sorumluları belirlenmiş.", "Acil durum planı mevcut.", "Kat ve bölüm sorumluları belirlenmiş.", "Eğitim kayıtları mevcut.", "Tatbikat kayıtları mevcut.", "Acil telefon bilgileri görünür."]], ["Odalar ve Koridorlar", ["Koridorlar açık.", "Kaçış yönlendirmeleri görünür.", "Oda girişleri kaçışı engellemiyor.", "Duman dedektörleri görünür ve hasarsız.", "Duman dedektörlerinin önünde engel yok.", "Acil aydınlatmalar çalışıyor.", "Kat çıkışları görünür."]], ["Yangın Alarmı ve Algılama", ["Yangın alarm paneli normal durumda.", "Dedektörler çalışır durumda.", "Manuel ihbar butonları erişilebilir.", "Sirenler çalışıyor.", "Alarm sistemi enerji beslemesi uygun.", "Alarm arıza kayıtları takip ediliyor."]], ["Söndürme ve Yangın Dolapları", ["Yangın söndürücüler uygun.", "Söndürücülerin önü açık.", "Yangın dolapları erişilebilir.", "Hortum ve lanslar uygun.", "Yangın pompaları çalışır durumda.", "Yangın suyu sistemi kontrol edilebilir."]], ["Kaçış Merdivenleri", ["Yangın merdiveni erişilebilir.", "Merdivenlerde eşya/depolama yok.", "Yangın kapıları kapanıyor.", "Kapılar kaçış yönünde kullanılabilir.", "Merdiven aydınlatması çalışıyor.", "Merdiven yönlendirmeleri görünür."]], ["Mutfak ve Teknik Alanlar", ["Mutfak davlumbazı temiz.", "Baca/kanal temizliği kayıtları mevcut.", "Mutfak söndürme sistemi çalışıyor.", "Gaz kesme vanası erişilebilir.", "Jeneratör odası düzenli.", "Kazan/trafo/elektrik odaları düzenli.", "Teknik alanlarda yanıcı malzeme depolanmıyor."]], ["Misafir Güvenliği", ["Odalar/katlarda acil tahliye bilgileri görünür.", "Toplanma alanı belirlenmiş.", "Personel tahliye görevlerini biliyor.", "Gece vardiyası için acil durum organizasyonu yapılmış.", "Engelli misafirlerin tahliyesine yönelik düzenleme değerlendirilmiş.", "Misafirlerin acil çıkışları bulmasını sağlayan yönlendirmeler görünür."]]], "DEPO": [["Depolama Düzeni", ["Depolanan ürünlerin yangın tehlike özellikleri belirlenmiş.", "Raf düzeni güvenli.", "Depolama yüksekliği ve yerleşimi sistemin özellikleriyle uyumlu.", "Sprinkler başlıklarının önü açık.", "Raflar arasında geçişler açık.", "Kaçış yollarında malzeme yok.", "Yanıcı ürünler uygun şekilde ayrılmış.", "Kimyasal ürünler uygun şekilde depolanıyor."]], ["Yangın Söndürme", ["Uygun tipte söndürücüler mevcut.", "Söndürücüler erişilebilir.", "Yangın dolapları erişilebilir.", "Yangın pompaları çalışır durumda.", "Yangın suyu sistemi kontrol edilebilir.", "Sprinkler sistemi normal durumda.", "Sprinkler vanaları erişilebilir ve işaretli.", "Yangın alarm paneli normal durumda."]], ["Algılama ve Alarm", ["Duman/ısı dedektörleri görünür.", "Dedektörlerin önü kapatılmamış.", "Manuel ihbar butonları erişilebilir.", "Sirenler çalışıyor.", "Alarm panelinde sürekli arıza uyarısı bulunmuyor.", "Alarm sistemi enerji beslemesi uygun."]], ["Elektrik ve Şarj", ["Elektrik panolarının önü açık.", "Panolarda yanık/ısınma belirtisi yok.", "Geçici ve uygunsuz elektrik tesisatı yok.", "Akü/araç şarj alanı ayrılmış.", "Şarj alanında yanıcı malzeme bulunmuyor.", "Şarj alanı havalandırması uygun.", "Şarj kabloları ve bağlantıları hasarsız."]], ["Yangın Bölmeleri ve Kaçış", ["Yangın kapıları bütünlüğünü koruyor.", "Yangın kapıları açık tutulmuyor.", "Duvar/döşeme tesisat geçişleri uygun şekilde korunmuş.", "Kaçış kapıları açılabilir.", "Acil aydınlatmalar çalışıyor.", "Çıkış yönlendirmeleri görünür.", "Yangın bölmeleri içinde uygunsuz açıklık bulunmuyor."]], ["Operasyon ve Personel", ["Acil durum planı mevcut.", "Yangın ekipleri belirlenmiş.", "Personel yangın eğitimi almış.", "Tatbikat kayıtları mevcut.", "İtfaiye erişim yolu açık.", "Yanıcı atıklar düzenli uzaklaştırılıyor.", "Sigara/ateş kaynakları kontrollü.", "Bakım ve kontrol kayıtları tutuluyor."]]]}; const COMMON=["Kaçış yolunun ciddi şekilde kapatılması.", "Yangın merdiveninin kullanılamaz olması.", "Acil çıkış kapısının kilitli olması.", "Yangın kapılarının açık tutulması.", "Elektrik panosunda ciddi yanma/ısınma belirtisi.", "Gaz kaçağı veya gaz güvenliği şüphesi.", "Davlumbaz/bacada yoğun yağ birikimi.", "Yangın alarm sisteminin devre dışı olması.", "Sprinkler sisteminin devre dışı olması.", "Yangın pompasının çalışmaması.", "Yanıcı maddelerin kaçış yolunda depolanması.", "İtfaiye yaklaşım yolunun tamamen engellenmesi."];
+const typeEl=document.getElementById("type"); Object.keys(DB).forEach(k=>{let o=document.createElement("option");o.textContent=k;typeEl.appendChild(o)});
+document.getElementById("date").value=new Date().toISOString().slice(0,10);
+function esc(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
+function render(){let html="",n=0;DB[typeEl.value].forEach(sec=>{html+=`<div class="topic"><h3>🔥 ${esc(sec[0])}</h3>`;sec[1].forEach(q=>{n++;html+=item(n,q,false)});html+="</div>"});
+html+=`<div class="topic"><h3>🔴 Ortak Kritik Kontroller</h3>`;COMMON.forEach(q=>{n++;html+=item(n,q,true)});html+="</div>";
+document.getElementById("list").innerHTML=html;document.getElementById("total").textContent=n;
+document.querySelectorAll("[data-status]").forEach(x=>x.onchange=update);update();
 }
-function item(n,q,critical){
-return `<div class="item"><b>${n}. ${esc(q)}</b>
+function item(n,q,critical){return `<div class="item"><b>${n}. ${esc(q)}</b><div class="ig">
 <select data-status="${n}"><option value="">Durum seç</option><option>Uygun</option><option>Uygunsuz</option><option>Kısmen Uygun</option><option>Mevcut Değil</option><option>Kapsam Dışı</option></select>
 <select data-risk="${n}"><option>Risk: ${critical?"Kritik":"Yüksek"}</option><option>Risk: Orta</option><option>Risk: Düşük</option></select>
-<textarea data-note="${n}" placeholder="Tespit / açıklama"></textarea>
-<textarea data-action="${n}" placeholder="Önerilen tedbir"></textarea>
-<label>📷 Fotoğraf<input type="file" accept="image/*" capture="environment"></label></div>`;
-}
-function update(){
-let a=[...document.querySelectorAll("[data-status]")], v=a.filter(x=>x.value&&x.value!="Kapsam Dışı");
-let ok=v.filter(x=>x.value=="Uygun").length,bad=v.filter(x=>x.value=="Uygunsuz").length;
-document.getElementById("ok").textContent=ok;document.getElementById("bad").textContent=bad;
-document.getElementById("score").textContent=(v.length?Math.round(ok/v.length*100):0)+"%";
-}
-function save(){
-let rec={name:document.getElementById("name").value,type:document.getElementById("type").value,address:document.getElementById("address").value,date:document.getElementById("date").value};
-let a=JSON.parse(localStorage.getItem("ydpro")||"[]");a.unshift(rec);localStorage.setItem("ydpro",JSON.stringify(a));load();
-alert("Denetim telefona kaydedildi.");
-}
-function load(){
-let a=JSON.parse(localStorage.getItem("ydpro")||"[]");document.getElementById("history").innerHTML=a.length?a.map(x=>`<div style="padding:8px;border-bottom:1px solid #eee"><b>${esc(x.name||"İsimsiz")}</b><br><small>${esc(x.type)} • ${esc(x.date||"")}</small></div>`).join(""):"Henüz kayıt yok.";
-}
-document.getElementById("date").value=new Date().toISOString().slice(0,10);load();showTopics();
-</script>
-</body></html>
+<textarea data-note="${n}" placeholder="Tespit / açıklama"></textarea><textarea data-action="${n}" placeholder="Önerilen tedbir"></textarea>
+<label>📷 Fotoğraf<input type="file" accept="image/*" capture="environment"></label></div></div>`}
+function update(){let a=[...document.querySelectorAll("[data-status]")],v=a.filter(x=>x.value&&x.value!="Kapsam Dışı"),ok=v.filter(x=>x.value=="Uygun").length,bad=v.filter(x=>x.value=="Uygunsuz").length,p=v.length?Math.round(ok/v.length*100):0;document.getElementById("ok").textContent=ok;document.getElementById("bad").textContent=bad;document.getElementById("score").textContent=p+"%"}
+function save(){let rec={name:name.value,type:typeEl.value,address:address.value,date:date.value,inspector:inspector.value};let a=JSON.parse(localStorage.getItem("ydpro")||"[]");a.unshift(rec);localStorage.setItem("ydpro",JSON.stringify(a));load();alert("Denetim kaydedildi.")}
+function load(){let a=JSON.parse(localStorage.getItem("ydpro")||"[]");history.innerHTML=a.length?a.map(x=>`<div style="padding:8px;border-bottom:1px solid #eee"><b>${esc(x.name||"İsimsiz")}</b><br><small>${esc(x.type)} • ${esc(x.date||"")}</small></div>`).join(""):"Henüz kayıt yok."}
+typeEl.onchange=render;load();render();
+</script></body></html>

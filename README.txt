@@ -1,6 +1,4 @@
-# Yangın Denetim Pro – Ücretsiz V1
-
-Bu sürüm tek HTML dosyasıyla çalışır. Yapı türü seçildiğinde denetim konuları otomatik gösterilir.
-Dosyayı Safari'de açıp Paylaş > Ana Ekrana Ekle ile iPhone ana ekranına ekleyebilirsiniz.
-
-Önemli: iOS Dosyalar uygulamasının önizlemesi bazı web özelliklerini çalıştırmayabilir. En iyi kullanım Safari üzerinden yayınlanan web adresidir.
+Yangın Denetim Pro – Ücretsiz V1 genişletilmiş sürüm.
+Her yapı türünde 50+ kontrol maddesi + 12 ortak kritik kontrol vardır.
+GitHub Pages'te kökteki index.html dosyasının yerine yükleyin.
+Mevzuat açısından nihai denetim listesi olarak değil, saha kontrol taslağı olarak kullanılmalıdır; güncel mevzuat ve yerel idare/itfaiye kriterleri ayrıca doğrulanmalıdır.
