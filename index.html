@@ -16,7 +16,7 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 .stat{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.stat div{text-align:center;border:1px solid #e4e7ec;border-radius:9px;padding:8px}.stat b{display:block;font-size:18px}.stat small{color:#667085}
 .note{background:#fff8e1;border:1px solid #f5c542;border-radius:10px;padding:10px;font-size:13px}
 @media(max-width:600px){.grid,.ig{grid-template-columns:1fr}.stat{grid-template-columns:1fr 1fr}}@media print{header,.noPrint{display:none!important}body{background:#fff}}
-</style><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</style>
 
 <style id="pdf-style">
 #pdf-report{position:absolute;left:0;top:0;width:1120px;background:#fff;color:#111;font-family:Arial,sans-serif;font-size:10px}
@@ -94,7 +94,7 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 </div><div class="actions noPrint">
 <button class="red" onclick="render()">📋 DENETİMİ BAŞLAT / KONULARI GÖSTER</button>
 <button class="dark" onclick="save()">💾 DENETİMİ KAYDET</button>
-<button class="green" onclick="makePDF()">📄 PDF OLUŞTUR</button>
+<button class="green" onclick="openReport()">📄 RAPORU AÇ / PDF</button>
 </div></section>
 <section class="card"><h2>📊 Denetim Özeti</h2><div class="stat">
 <div><b id="total">0</b><small>Toplam</small></div><div><b id="ok">0</b><small>Uygun</small></div><div><b id="bad">0</b><small>Uygunsuz</small></div><div><b id="score">0%</b><small>Uygunluk</small></div></div></section>
@@ -118,7 +118,69 @@ function item(n,q,critical){return `<div class="item"><b>${n}. ${esc(q)}</b><div
 <textarea data-note="${n}" placeholder="Tespit / açıklama"></textarea><textarea data-action="${n}" placeholder="Önerilen tedbir"></textarea>
 <label>📷 Fotoğraf<input type="file" accept="image/*" capture="environment"></label></div></div>`}
 function update(){let a=[...document.querySelectorAll("[data-status]")],v=a.filter(x=>x.value&&x.value!="Kapsam Dışı"),ok=v.filter(x=>x.value=="Uygun").length,bad=v.filter(x=>x.value=="Uygunsuz").length,p=v.length?Math.round(ok/v.length*100):0;document.getElementById("ok").textContent=ok;document.getElementById("bad").textContent=bad;document.getElementById("score").textContent=p+"%"}
-function save(){let rec={name:name.value,type:typeEl.value,address:address.value,date:date.value,inspector:inspector.value};let a=JSON.parse(localStorage.getItem("ydpro")||"[]");a.unshift(rec);localStorage.setItem("ydpro",JSON.stringify(a));load();alert("Denetim kaydedildi.")}
+async function save(){
+  const defaultName=(name.value||"İsimsiz İşletme").trim();
+  const userName=prompt("Denetim dosyasının adını girin:", defaultName);
+  if(userName===null) return;
+  const safeName=(userName.trim()||defaultName||"Yangin-Denetim").replace(/[\/:*?"<>|]/g,"-");
+
+  const data={
+    app:"Yangın Denetim Pro",
+    version:"V7",
+    fileName:safeName,
+    savedAt:new Date().toISOString(),
+    business:{
+      name:name.value||"", type:typeEl.value||"", address:address.value||"",
+      date:date.value||"", inspector:inspector.value||"", phone:phone.value||""
+    },
+    controls:{statuses:{},risks:{},notes:{},actions:{}},
+    photos:{}
+  };
+
+  document.querySelectorAll("[data-status]").forEach(e=>data.controls.statuses[e.dataset.status]=e.value);
+  document.querySelectorAll("[data-risk]").forEach(e=>data.controls.risks[e.dataset.risk]=e.value);
+  document.querySelectorAll("[data-note]").forEach(e=>data.controls.notes[e.dataset.note]=e.value);
+  document.querySelectorAll("[data-action]").forEach(e=>data.controls.actions[e.dataset.action]=e.value);
+
+  const reads=[];
+  document.querySelectorAll(".item").forEach(item=>{
+    const st=item.querySelector("[data-status]");
+    const file=item.querySelector('input[type="file"]')?.files?.[0];
+    if(!st || !file) return;
+    const n=st.dataset.status;
+    reads.push(new Promise(resolve=>{
+      const r=new FileReader();
+      r.onload=()=>{data.photos[n]={name:file.name,type:file.type,data:r.result};resolve();};
+      r.onerror=()=>resolve();
+      r.readAsDataURL(file);
+    }));
+  });
+  await Promise.all(reads);
+
+  const json=JSON.stringify(data,null,2);
+  const file=new File([json],safeName+" - Yangın Denetim - "+(date.value||"").replaceAll("-",".")+".json",{type:"application/json"});
+
+  try{
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({title:file.name,text:"Yangın Denetim Pro denetim yedeği",files:[file]});
+      alert("Denetim dosyası hazırlandı. Paylaşım ekranından 'Dosyalara Kaydet' seçebilirsin.");
+    }else{
+      const url=URL.createObjectURL(file),a=document.createElement("a");
+      a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),30000);
+      alert("Dosya indirme işlemi başlatıldı. iPhone'da Dosyalar > İndirilenler bölümünü kontrol et.");
+    }
+  }catch(e){
+    if(e && e.name==="AbortError") return;
+    alert("Dosya kaydedilemedi. Tekrar deneyin.");
+  }
+
+  // Keep a lightweight local history entry too.
+  let a=JSON.parse(localStorage.getItem("ydpro")||"[]");
+  a.unshift({name:safeName,type:typeEl.value,address:address.value,date:date.value,inspector:inspector.value,savedAt:data.savedAt});
+  localStorage.setItem("ydpro",JSON.stringify(a.slice(0,100)));
+  load();
+}
 function load(){let a=JSON.parse(localStorage.getItem("ydpro")||"[]");history.innerHTML=a.length?a.map(x=>`<div style="padding:8px;border-bottom:1px solid #eee"><b>${esc(x.name||"İsimsiz")}</b><br><small>${esc(x.type)} • ${esc(x.date||"")}</small></div>`).join(""):"Henüz kayıt yok."}
 typeEl.onchange=render;load();render();
 
@@ -189,4 +251,47 @@ function makePDF(){
   setTimeout(()=>{document.body.classList.remove("printing-report");report.remove();},1500);
 }
 
-</script></body></html>
+</script>
+<script>
+async function openReport(){
+  try{
+    const data={
+      name:document.getElementById("name")?.value||"",
+      type:document.getElementById("type")?.value||"",
+      address:document.getElementById("address")?.value||"",
+      date:document.getElementById("date")?.value||"",
+      inspector:document.getElementById("inspector")?.value||"",
+      phone:document.getElementById("phone")?.value||"",
+      general:document.getElementById("general")?.value||"",
+      follow:document.getElementById("follow")?.value||"",
+      statuses:{}, risks:{}, notes:{}, actions:{}, photos:{}
+    };
+    document.querySelectorAll("[data-status]").forEach(e=>data.statuses[e.dataset.status]=e.value);
+    document.querySelectorAll("[data-risk]").forEach(e=>data.risks[e.dataset.risk]=e.value);
+    document.querySelectorAll("[data-note]").forEach(e=>data.notes[e.dataset.note]=e.value);
+    document.querySelectorAll("[data-action]").forEach(e=>data.actions[e.dataset.action]=e.value);
+
+    const photoReads=[];
+    document.querySelectorAll(".item").forEach(item=>{
+      const st=item.querySelector("[data-status]");
+      const file=item.querySelector('input[type="file"]')?.files?.[0];
+      if(!st || !file) return;
+      const n=st.dataset.status;
+      // Keep photos in the report only for actual nonconformities.
+      if(st.value!=="Uygunsuz") return;
+      photoReads.push(new Promise(resolve=>{
+        const r=new FileReader();
+        r.onload=()=>{data.photos[n]=r.result; resolve();};
+        r.onerror=()=>resolve();
+        r.readAsDataURL(file);
+      }));
+    });
+    await Promise.all(photoReads);
+    localStorage.setItem("ydpro_report_v6",JSON.stringify(data));
+    window.location.href="report.html?v=6";
+  }catch(e){
+    alert("Rapor hazırlanamadı. Sayfayı yenileyip tekrar deneyin.");
+  }
+}
+</script>
+</body></html>
