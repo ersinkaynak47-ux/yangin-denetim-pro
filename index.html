@@ -17,30 +17,7 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 .note{background:#fff8e1;border:1px solid #f5c542;border-radius:10px;padding:10px;font-size:13px}
 @media(max-width:600px){.grid,.ig{grid-template-columns:1fr}.stat{grid-template-columns:1fr 1fr}}@media print{header,.noPrint{display:none!important}body{background:#fff}}
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
-function openReport(){
-  try{
-    // Save the current form state so report.html can render it.
-    const data={
-      name:document.getElementById("name")?.value||"",
-      type:document.getElementById("type")?.value||"",
-      address:document.getElementById("address")?.value||"",
-      date:document.getElementById("date")?.value||"",
-      inspector:document.getElementById("inspector")?.value||"",
-      phone:document.getElementById("phone")?.value||"",
-      general:document.getElementById("general")?.value||"",
-      follow:document.getElementById("follow")?.value||"",
-      statuses:{}, risks:{}, notes:{}, actions:{}
-    };
-    document.querySelectorAll("[data-status]").forEach(e=>data.statuses[e.dataset.status]=e.value);
-    document.querySelectorAll("[data-risk]").forEach(e=>data.risks[e.dataset.risk]=e.value);
-    document.querySelectorAll("[data-note]").forEach(e=>data.notes[e.dataset.note]=e.value);
-    document.querySelectorAll("[data-action]").forEach(e=>data.actions[e.dataset.action]=e.value);
-    localStorage.setItem("ydpro_report_v5",JSON.stringify(data));
-    window.location.href="report.html?v=5";
-  }catch(e){
-    alert("Rapor hazırlanamadı. Sayfayı yenileyip tekrar deneyin.");
-  }
-}
+
 
 
 
@@ -162,5 +139,30 @@ function showTab(id,btn){document.querySelectorAll('.tabpane').forEach(x=>x.clas
 
 
 
+
+
+function openReport(){
+  try{
+    var data={
+      name:(document.getElementById("name")||{}).value||"",
+      type:(document.getElementById("type")||{}).value||"",
+      address:(document.getElementById("address")||{}).value||"",
+      date:(document.getElementById("date")||{}).value||"",
+      inspector:(document.getElementById("inspector")||{}).value||"",
+      phone:(document.getElementById("phone")||{}).value||"",
+      general:(document.getElementById("general")||{}).value||"",
+      follow:(document.getElementById("follow")||{}).value||"",
+      statuses:{},risks:{},notes:{},actions:{}
+    };
+    document.querySelectorAll("[data-status]").forEach(function(e){data.statuses[e.getAttribute("data-status")]=e.value});
+    document.querySelectorAll("[data-risk]").forEach(function(e){data.risks[e.getAttribute("data-risk")]=e.value});
+    document.querySelectorAll("[data-note]").forEach(function(e){data.notes[e.getAttribute("data-note")]=e.value});
+    document.querySelectorAll("[data-action]").forEach(function(e){data.actions[e.getAttribute("data-action")]=e.value});
+    localStorage.setItem("ydpro_report_v11",JSON.stringify(data));
+    window.location.assign("report.html?v=11");
+  }catch(err){
+    alert("Rapor açılamadı. Sayfayı yenileyip tekrar deneyin.");
+  }
+}
 
 </script></body></html>

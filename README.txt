@@ -1,5 +1,5 @@
-Yangın Denetim Pro V10.
-- Akıllı Uygunsuzluk / fotoğraf AI sekmesi kaldırıldı.
-- PDF raporu için ayrı rapor sayfası ve iPhone Safari'nin native PDF/yazdırma sistemi kullanılır.
-- Ana formdaki PDF RAPORU butonu denetim verilerini report.html'e aktarır.
-- Fotoğraf AI sekmesi ve AI butonları kaldırılmıştır.
+V11 PDF düzeltmesi.
+PDF RAPORU butonu artık kesin olarak openReport() fonksiyonuna bağlıdır.
+Denetim verileri localStorage'a ydpro_report_v11 anahtarıyla aktarılır ve report.html açılır.
+GitHub'a hem index.html hem report.html yüklenmelidir.
+Akıllı Uygunsuzluk sekmesi yoktur.
