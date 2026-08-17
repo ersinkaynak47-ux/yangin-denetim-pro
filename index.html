@@ -141,28 +141,18 @@ function showTab(id,btn){document.querySelectorAll('.tabpane').forEach(x=>x.clas
 
 
 
+
+
+
 function openReport(){
-  try{
-    var data={
-      name:(document.getElementById("name")||{}).value||"",
-      type:(document.getElementById("type")||{}).value||"",
-      address:(document.getElementById("address")||{}).value||"",
-      date:(document.getElementById("date")||{}).value||"",
-      inspector:(document.getElementById("inspector")||{}).value||"",
-      phone:(document.getElementById("phone")||{}).value||"",
-      general:(document.getElementById("general")||{}).value||"",
-      follow:(document.getElementById("follow")||{}).value||"",
-      statuses:{},risks:{},notes:{},actions:{}
-    };
-    document.querySelectorAll("[data-status]").forEach(function(e){data.statuses[e.getAttribute("data-status")]=e.value});
-    document.querySelectorAll("[data-risk]").forEach(function(e){data.risks[e.getAttribute("data-risk")]=e.value});
-    document.querySelectorAll("[data-note]").forEach(function(e){data.notes[e.getAttribute("data-note")]=e.value});
-    document.querySelectorAll("[data-action]").forEach(function(e){data.actions[e.getAttribute("data-action")]=e.value});
-    localStorage.setItem("ydpro_report_v11",JSON.stringify(data));
-    window.location.assign("report.html?v=11");
-  }catch(err){
-    alert("Rapor açılamadı. Sayfayı yenileyip tekrar deneyin.");
-  }
+  var d={name:"",type:"",address:"",date:"",inspector:"",phone:"",general:"",follow:"",statuses:{},risks:{},notes:{},actions:{}};
+  ["name","type","address","date","inspector","phone","general","follow"].forEach(function(id){var e=document.getElementById(id);if(e)d[id]=e.value||"";});
+  document.querySelectorAll("[data-status]").forEach(function(e){d.statuses[e.getAttribute("data-status")]=e.value||"";});
+  document.querySelectorAll("[data-risk]").forEach(function(e){d.risks[e.getAttribute("data-risk")]=e.value||"";});
+  document.querySelectorAll("[data-note]").forEach(function(e){d.notes[e.getAttribute("data-note")]=e.value||"";});
+  document.querySelectorAll("[data-action]").forEach(function(e){d.actions[e.getAttribute("data-action")]=e.value||"";});
+  localStorage.setItem("ydpro_report_v13",JSON.stringify(d));
+  location.href="report.html?v=13";
 }
 
 </script></body></html>

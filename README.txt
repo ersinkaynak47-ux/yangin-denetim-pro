@@ -1,1 +1,1 @@
-V12 Final PDF: AI/kamera sekmesi kaldırıldı; rapor ekranında native iOS Yazdır/Paylaş ile PDF kaydı.
+V13: PDF raporu tüm yapı türü maddelerini + ortak maddeleri eksiksiz aktarır. Native iOS print kullanır.
