@@ -90,7 +90,7 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 </style>
 <style id="v8-style">.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:8px 12px;background:#202b36;position:sticky;top:0;z-index:6}.tabs .tab{margin:0;background:#344454;color:#fff}.tabs .tab.active{background:#b42318}.tabpane{display:none}.tabpane.active{display:block}.ai-card{background:#fff;border:1px solid #d0d5dd;border-radius:15px;padding:14px;margin:10px 0}.ai-preview{width:100%;max-height:360px;object-fit:contain;background:#f2f4f7;border-radius:12px;display:none;margin-top:10px}.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ai-result{background:#f8fafc;border:1px solid #d0d5dd;border-radius:12px;padding:12px;margin-top:10px}.risk-score{font-size:28px;font-weight:900}.legal{font-size:12px;color:#475467}.warn{background:#fff8e1;border:1px solid #f5c542;padding:10px;border-radius:10px;font-size:12px}.photo-share{background:#7f56d9;color:#fff}.result-row{padding:7px 0;border-bottom:1px solid #eaecf0}.result-row:last-child{border-bottom:0}@media(max-width:600px){.ai-grid{grid-template-columns:1fr}}</style></head><body>
 <header><h1>🔥 Yangın Denetim Pro</h1><small>V8 • BYKHY odaklı saha denetim ve uygunsuzluk analiz sistemi</small></header>
-<div class="tabs noPrint"><button class="tab active" onclick="showTab('denetim',this)">📋 Denetim</button><button class="tab" onclick="showTab('ai',this)">📸 </button><button class="tab" onclick="showTab('mevzuat',this)">⚖️ Mevzuat</button></div><main><div id="denetim" class="tabpane active">
+<div class="tabs noPrint"></div><main><div id="denetim" class="tabpane active">
 <section class="card"><h2>🏢 İşletme Bilgileri</h2><div class="grid">
 <label>İşletme / Bina Adı<input id="name"></label>
 <label>Yapı Türü<select id="type"></select></label>
@@ -122,7 +122,7 @@ function item(n,q,critical){let reg=regFor(q);return `<div class="item"><b>${n}.
 <select data-status="${n}"><option value="">Durum seç</option><option>Uygun</option><option>Uygunsuz</option><option>Kısmen Uygun</option><option>Mevcut Değil</option><option>Kapsam Dışı</option></select>
 <select data-risk="${n}"><option>Risk: ${critical?"Kritik":"Yüksek"}</option><option>Risk: Orta</option><option>Risk: Düşük</option></select>
 <textarea data-note="${n}" placeholder="Tespit / açıklama"></textarea><textarea data-action="${n}" placeholder="Önerilen tedbir"></textarea>
-<label>📷 Fotoğraf<input type="file" accept="image/*"></label></div></div>`}
+<label> Fotoğraf<input type="file" accept="image/*"></label></div></div>`}
 function update(){let a=[...document.querySelectorAll("[data-status]")],v=a.filter(x=>x.value&&x.value!="Kapsam Dışı"),ok=v.filter(x=>x.value=="Uygun").length,bad=v.filter(x=>x.value=="Uygunsuz").length,p=v.length?Math.round(ok/v.length*100):0;document.getElementById("ok").textContent=ok;document.getElementById("bad").textContent=bad;document.getElementById("score").textContent=p+"%"}
 function save(){let rec={name:name.value,type:typeEl.value,address:address.value,date:date.value,inspector:inspector.value};let a=JSON.parse(localStorage.getItem("ydpro")||"[]");a.unshift(rec);localStorage.setItem("ydpro",JSON.stringify(a));load();alert("Denetim kaydedildi.")}
 function load(){let a=JSON.parse(localStorage.getItem("ydpro")||"[]");history.innerHTML=a.length?a.map(x=>`<div style="padding:8px;border-bottom:1px solid #eee"><b>${esc(x.name||"İsimsiz")}</b><br><small>${esc(x.type)} • ${esc(x.date||"")}</small></div>`).join(""):"Henüz kayıt yok."}
@@ -144,15 +144,20 @@ function showTab(id,btn){document.querySelectorAll('.tabpane').forEach(x=>x.clas
 
 
 
+
+
+
 function openReport(){
   var d={name:"",type:"",address:"",date:"",inspector:"",phone:"",general:"",follow:"",statuses:{},risks:{},notes:{},actions:{}};
-  ["name","type","address","date","inspector","phone","general","follow"].forEach(function(id){var e=document.getElementById(id);if(e)d[id]=e.value||"";});
-  document.querySelectorAll("[data-status]").forEach(function(e){d.statuses[e.getAttribute("data-status")]=e.value||"";});
-  document.querySelectorAll("[data-risk]").forEach(function(e){d.risks[e.getAttribute("data-risk")]=e.value||"";});
-  document.querySelectorAll("[data-note]").forEach(function(e){d.notes[e.getAttribute("data-note")]=e.value||"";});
-  document.querySelectorAll("[data-action]").forEach(function(e){d.actions[e.getAttribute("data-action")]=e.value||"";});
-  localStorage.setItem("ydpro_report_v13",JSON.stringify(d));
-  location.href="report.html?v=13";
+  ["name","type","address","date","inspector","phone","general","follow"].forEach(function(id){
+    var e=document.getElementById(id); if(e)d[id]=e.value||"";
+  });
+  document.querySelectorAll("[data-status]").forEach(function(e){d.statuses[e.getAttribute("data-status")]=e.value||""});
+  document.querySelectorAll("[data-risk]").forEach(function(e){d.risks[e.getAttribute("data-risk")]=e.value||""});
+  document.querySelectorAll("[data-note]").forEach(function(e){d.notes[e.getAttribute("data-note")]=e.value||""});
+  document.querySelectorAll("[data-action]").forEach(function(e){d.actions[e.getAttribute("data-action")]=e.value||""});
+  localStorage.setItem("ydpro_report_v14",JSON.stringify(d));
+  window.location.href="report.html?v=14";
 }
 
 </script></body></html>

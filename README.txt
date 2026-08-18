@@ -1,1 +1,1 @@
-V13: PDF raporu tüm yapı türü maddelerini + ortak maddeleri eksiksiz aktarır. Native iOS print kullanır.
+V14 Temiz: kamera/AI sekmesi ve ilgili kodlar kaldırıldı. PDF raporu report.html üzerinden native iOS yazdırmayı kullanır.
