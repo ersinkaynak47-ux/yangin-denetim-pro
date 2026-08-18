@@ -19,13 +19,27 @@ th:nth-child(1){width:3%} th:nth-child(2){width:29%} th:nth-child(3){width:10%} 
 .general{border:1px solid #aaa;min-height:60px;padding:7px;white-space:pre-wrap}
 .sign{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:18px}
 .help{max-width:1100px;margin:8px auto;padding:8px 12px;background:#fff8d8;border:1px solid #d5b000;border-radius:8px}
-@media print{@page{size:A4 landscape;margin:7mm} body{background:#fff} .toolbar,.help{display:none!important} .sheet{margin:0;padding:0;max-width:none} h2{break-after:avoid} tr{break-inside:avoid}}
+@media print{
+      @page{size:A4 landscape;margin:8mm}
+      html,body{background:#fff!important}
+      body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .toolbar,.help{display:none!important}
+      .sheet{margin:0!important;padding:0!important;max-width:none!important}
+      h1{page-break-after:avoid;break-after:avoid}
+      h2{page-break-after:avoid;break-after:avoid;margin-top:8px}
+      table{page-break-inside:auto;break-inside:auto}
+      thead{display:table-header-group}
+      tfoot{display:table-footer-group}
+      tr{page-break-inside:avoid;break-inside:avoid}
+      td,th{page-break-inside:avoid;break-inside:avoid}
+      .sign{page-break-inside:avoid;break-inside:avoid}
+    }
 </style></head><body>
 <div class="toolbar">
 <button type="button" onclick="history.back()">← Geri</button>
-<button type="button" id="pdfBtn" onclick="downloadPDF()">📥 PDF İNDİR</button> <button onclick="downloadExcelV17Report()">📊 EXCEL İNDİR</button><span id="excelStatus" style="font-size:12px;color:#667085">Rapor hazır ✓</span><button type="button" onclick="window.print()">🖨️ YAZDIR</button>
+<button type="button" id="pdfBtn" onclick="downloadPDF()">📥 PDF KAYDET</button> <button onclick="downloadExcelV17Report()">📊 EXCEL İNDİR</button><span id="excelStatus" style="font-size:12px;color:#667085">Rapor hazır ✓</span><button type="button" onclick="window.print()">🖨️ YAZDIR</button>
 </div>
-<div class="help"><b>iPhone:</b> <b>PDF İNDİR</b> raporu gerçek PDF dosyasına dönüştürür. Ardından Paylaş ekranından <b>Dosyalara Kaydet</b> seçebilirsiniz.</div>
+<div class="help"><b>PDF:</b> <b>PDF KAYDET</b> düğmesi cihazın yazdır/PDF ekranını açar. iPhone’da <b>Paylaş → Dosyalara Kaydet</b>, bilgisayarda <b>PDF olarak kaydet</b> seçeneğini kullanabilirsiniz. Bu yöntem raporu tablo ve sayfa düzenini bozmadan oluşturur.</div>
 <div id="root"></div>
 
 
@@ -59,34 +73,27 @@ ${out}
 <div class="sign"><div>Denetçi<br><br>________________________<br>${esc(d.inspector)||"Ad Soyad"}</div><div>Yetkili<br><br>________________________<br>${esc(d.phone)||"Ad Soyad / Telefon"}</div></div>
 </div>`;
 
-function loadScriptOnce(src, testName){
-  return new Promise(function(resolve,reject){
-    if(testName && window[testName]) return resolve();
-    var s=document.createElement("script"); s.src=src; s.async=true;
-    s.onload=function(){resolve();}; s.onerror=function(){reject(new Error("Kitaplık yüklenemedi"));};
-    document.head.appendChild(s);
-  });
-}
-async function downloadPDF(){
-  var btn=document.getElementById("pdfBtn"), sheet=document.querySelector(".sheet");
-  if(!sheet){alert("Rapor içeriği hazırlanamadı.");return;}
-  var old=btn.textContent; btn.disabled=true; btn.textContent="⏳ PDF HAZIRLANIYOR...";
-  try{
-    await loadScriptOnce("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js","html2canvas");
-    await loadScriptOnce("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js","jspdf");
-    var canvas=await html2canvas(sheet,{scale:1.5,useCORS:true,backgroundColor:"#fff",logging:false});
-    var jsPDF=window.jspdf.jsPDF, pdf=new jsPDF({orientation:"landscape",unit:"mm",format:"a4",compress:true});
-    var pageW=297,pageH=210,pagePx=Math.floor(canvas.width*(pageH/pageW)),y=0,page=0;
-    while(y<canvas.height){
-      var h=Math.min(pagePx,canvas.height-y), pc=document.createElement("canvas"); pc.width=canvas.width;pc.height=h;
-      var c=pc.getContext("2d");c.fillStyle="#fff";c.fillRect(0,0,pc.width,h);c.drawImage(canvas,0,y,canvas.width,h,0,0,canvas.width,h);
-      if(page)pdf.addPage(); pdf.addImage(pc.toDataURL("image/jpeg",.9),"JPEG",0,0,pageW,(h/canvas.width)*pageW,"FAST"); y+=h;page++;
+function downloadPDF(){
+  var btn=document.getElementById("pdfBtn");
+  if(!document.querySelector(".sheet")){
+    alert("Rapor henüz hazırlanmadı.");
+    return;
+  }
+  var old=btn.textContent;
+  btn.disabled=true;
+  btn.textContent="⏳ PDF EKRANI AÇILIYOR...";
+  // Native browser print is the most reliable PDF route on iPhone, iPad,
+  // Windows and macOS. It avoids canvas/memory/page-splitting errors.
+  setTimeout(function(){
+    try{
+      window.print();
+    }finally{
+      setTimeout(function(){
+        btn.disabled=false;
+        btn.textContent=old;
+      },800);
     }
-    var blob=pdf.output("blob"),name="Yangin_Denetim_Raporu_"+(d.name||"").replace(/[\\/:*?"<>|]/g,"_")+".pdf",file=new File([blob],name,{type:"application/pdf"});
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})) await navigator.share({files:[file],title:"Yangın Denetim Raporu"});
-    else {var u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},3000);}
-  }catch(e){console.error(e);alert("PDF oluşturulamadı. Yazdır seçeneğiyle PDF olarak kaydedebilirsiniz.");}
-  finally{btn.disabled=false;btn.textContent=old;}
+  },120);
 }
 
 async function downloadExcelV17Report(){
