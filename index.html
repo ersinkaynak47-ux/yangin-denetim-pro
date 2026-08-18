@@ -108,7 +108,7 @@ button{border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;w
 <button onclick="v15Tab('mevzuat',this)">⚖️ Mevzuat</button>
 <button onclick="v15Tab('istat',this)">📊 İstatistik</button>
 <button onclick="v15Tab('yedek',this)">💾 Yedekleme</button>
-</div><main><div id="ana" class="v15pane active"></div><div id="denetim" class="v15pane">
+</div><main><div id="ana" class="v15pane active"><section class="card"><h2>🏠 Denetim Yönetim Merkezi</h2><div class="note">Yükleniyor…</div></section></div><div id="denetim" class="v15pane">
 <section class="card"><h2>🏢 İşletme Bilgileri</h2><div class="grid">
 <label>İşletme / Bina Adı<input id="name"></label>
 <label>Yapı Türü<select id="type"></select></label>
@@ -183,5 +183,16 @@ function renderStats(){var a=recordsV15(),bad=0,high=0,mid=0,low=0,late=0;a.forE
 function refreshV15(){renderDashboard();renderUyg();renderTerm();renderArchive();renderStats()}
 function backupV15(){var data={version:"V15",createdAt:new Date().toISOString(),records:recordsV15()};var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Yangin_Denetim_Pro_Yedek_"+new Date().toISOString().slice(0,10)+".json";a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
 function restoreV15(){var f=document.getElementById("restoreFile").files[0];if(!f){alert("Önce yedek dosyasını seçin.");return}var rd=new FileReader();rd.onload=function(){try{var d=JSON.parse(rd.result);if(!Array.isArray(d.records))throw 0;localStorage.setItem("ydpro_v15",JSON.stringify(d.records));refreshV15();load();alert("Yedek geri yüklendi.")}catch(e){alert("Geçersiz yedek dosyası.")}};rd.readAsText(f)}
+
+
+document.addEventListener('DOMContentLoaded',function(){
+  try{
+    if(typeof load==='function') load();
+    if(typeof render==='function') render();
+    refreshV15();
+  }catch(e){
+    console.error('V15 init error:',e);
+  }
+});
 
 </script></body></html>
