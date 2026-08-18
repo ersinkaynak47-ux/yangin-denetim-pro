@@ -20,7 +20,7 @@ th:nth-child(1){width:3%} th:nth-child(2){width:29%} th:nth-child(3){width:10%} 
 .sign{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:18px}
 .help{max-width:1100px;margin:8px auto;padding:8px 12px;background:#fff8d8;border:1px solid #d5b000;border-radius:8px}
 @media print{@page{size:A4 landscape;margin:7mm} body{background:#fff} .toolbar,.help{display:none!important} .sheet{margin:0;padding:0;max-width:none} h2{break-after:avoid} tr{break-inside:avoid}}
-</style></head><body>
+</style><script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script></head><body>
 <div class="toolbar">
 <button type="button" onclick="history.back()">← Geri</button>
 <button type="button" id="pdfBtn" onclick="downloadPDF()">📥 PDF İNDİR</button> <button onclick="downloadExcelV17Report()">📊 EXCEL İNDİR</button><button type="button" onclick="window.print()">🖨️ YAZDIR</button>
@@ -113,24 +113,43 @@ async function downloadPDF(){
 
 
 function downloadExcelV17Report(){
-  var data;
-  try{ data=JSON.parse(localStorage.getItem("ydpro_report_v15")||"{}"); }catch(e){data={};}
-  var items=Array.isArray(data.items)?data.items:[];
-  var rows=items.map(function(x,i){return {
-    no:i+1, bolum:x.section||x.bolum||"", madde:x.text||x.title||x.name||("Kontrol maddesi "+(i+1)),
-    durum:x.status||x.durum||"", risk:x.risk||"", tespit:x.note||x.tespit||"", tedbir:x.action||x.tedbir||"",
-    mevzuat:x.legal||x.mevzuat||"", termin:x.term||x.termin||""
-  }});
-  var bad=rows.filter(function(x){return /uygunsuz/i.test(x.durum)});
-  var r=data;
-  var H=["No","Bölüm","Kontrol Maddesi","Durum","Risk","Tespit","Önerilen Tedbir","Mevzuat","Termin"];
-  var K=["no","bolum","madde","durum","risk","tespit","tedbir","mevzuat","termin"];
-  function table(a){return "<table><thead><tr>"+H.map(function(h){return "<th>"+h+"</th>"}).join("")+"</tr></thead><tbody>"+a.map(function(x){return "<tr>"+K.map(function(k){return "<td>"+String(x[k]||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</td>"}).join("")+"</tr>"}).join("")+"</tbody></table>"}
-  var meta="<table><tr><th>İşletme / Bina</th><td>"+(r.name||"")+"</td><th>Yapı Türü</th><td>"+(r.type||"")+"</td></tr><tr><th>Adres</th><td>"+(r.address||"")+"</td><th>Denetim Tarihi</th><td>"+(r.date||"")+"</td></tr><tr><th>Denetçi</th><td>"+(r.inspector||"")+"</td><th>Uygunsuzluk</th><td>"+bad.length+"</td></tr></table>";
-  var doc="<html><head><meta charset='utf-8'><style>body{font-family:Arial}table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #999;padding:6px;font-size:11px;vertical-align:top}th{background:#e9eef3}</style></head><body><h1>YANGIN DENETİM PRO – V17</h1>"+meta+"<h2>Denetim</h2>"+table(rows)+"<h2>Uygunsuzluklar</h2>"+table(bad)+"</body></html>";
-  var blob=new Blob(["\ufeff"+doc],{type:"application/vnd.ms-excel;charset=utf-8"}),a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);a.download=((r.name||"Yangin_Denetim").replace(/[^\wçğıöşüÇĞİÖŞÜ -]/g,"_"))+"_V17.xls";a.click();
-  setTimeout(function(){URL.revokeObjectURL(a.href)},1500);
+  if(typeof XLSX==="undefined"){alert("Excel motoru yüklenemedi. İnternet bağlantınızı kontrol edip tekrar deneyin.");return;}
+  var d=JSON.parse(localStorage.getItem("ydpro_report_v15")||"{}");
+  var S=d.statuses||{}, R=d.risks||{}, N=d.notes||{}, A=d.actions||{};
+  var rows=[],no=0;
+  function legalX(q){
+    q=String(q||"").toLowerCase();
+    if(/kaçış|merdiven|çıkış|kapı|koridor|tahliye/.test(q))return"BYKHY – Kaçış ve tahliye hükümleri";
+    if(/itfaiye|yaklaşım|hidrant/.test(q))return"BYKHY – İtfaiye erişimi/yaklaşım hükümleri";
+    if(/alarm|dedektör|siren|ihbar/.test(q))return"BYKHY – Algılama ve uyarı sistemleri";
+    if(/dolap|hortum|söndürücü|pompa|su depos/.test(q))return"BYKHY – Söndürme sistemleri";
+    if(/sorumlu|ekip|eğitim|tatbikat|acil durum plan/.test(q))return"BYKHY + İşyerlerinde Acil Durumlar Hakkında Yönetmelik";
+    if(/elektrik|iş güvenliği/.test(q))return"6331 – Risk değerlendirmesi/acil durum hükümleri";
+    return"BYKHY / ilgili yapı ve kullanım hükümleri";
+  }
+  function add(sec,arr){
+    (arr||[]).forEach(function(q){
+      no++;
+      rows.push({"No":no,"Bölüm":sec,"Kontrol Maddesi":q,"Durum":S[no]||"İşaretlenmedi","Risk":R[no]||"","Tespit":N[no]||"","Önerilen Tedbir":A[no]||"","Mevzuat":legalX(q),"Termin":""});
+    });
+  }
+  (DB[d.type]||[]).forEach(function(s){add(s[0],s[1]);});
+  add("Ortak Kritik Kontroller",COMMON);
+  var bad=rows.filter(function(x){return x["Durum"]==="Uygunsuz";});
+  var summary=[
+    ["YANGIN DENETİM PRO – V17.1"],
+    ["İşletme / Bina",d.name||""],["Yapı Türü",d.type||""],["Adres",d.address||""],
+    ["Denetim Tarihi",d.date||""],["Denetçi",d.inspector||""],["Yetkili / Telefon",d.phone||""],
+    ["Toplam Madde",rows.length],["Uygun",rows.filter(x=>x["Durum"]==="Uygun").length],
+    ["Uygunsuz",bad.length],["Uygunluk",((rows.filter(x=>x["Durum"]==="Uygun").length)/(Math.max(rows.filter(x=>x["Durum"]&&x["Durum"]!=="Kapsam Dışı").length,1))*100).toFixed(0)+"%"]
+  ];
+  function mk(data,widths){var ws=XLSX.utils.aoa_to_sheet(data);ws["!cols"]=widths.map(function(w){return{wch:w};});ws["!freeze"]={xSplit:0,ySplit:1};return ws;}
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,mk(summary,[2,38,38]),"Özet");
+  var den=XLSX.utils.json_to_sheet(rows);den["!cols"]=[{wch:6},{wch:25},{wch:55},{wch:18},{wch:12},{wch:45},{wch:45},{wch:55},{wch:16}];den["!autofilter"]={ref:"A1:I"+Math.max(rows.length+1,2)};den["!freeze"]={xSplit:0,ySplit:1};XLSX.utils.book_append_sheet(wb,den,"Denetim");
+  var uyg=XLSX.utils.json_to_sheet(bad);uyg["!cols"]=den["!cols"];uyg["!autofilter"]={ref:"A1:I"+Math.max(bad.length+1,2)};uyg["!freeze"]={xSplit:0,ySplit:1};XLSX.utils.book_append_sheet(wb,uyg,"Uygunsuzluklar");
+  var ph=XLSX.utils.aoa_to_sheet([["No","Fotoğraf / Ek","Açıklama"],["","Bu sürüm fotoğraf dosyasını Excel içine gömmek yerine dosya kaydını raporla ilişkilendirir.","Fotoğrafları ayrı klasörde UYG-xxx adıyla saklayabilirsiniz."]]);ph["!cols"]=[{wch:10},{wch:55},{wch:70}];XLSX.utils.book_append_sheet(wb,ph,"Fotoğraflar");
+  var fn=(d.name||"Yangin_Denetim").replace(/[\\/:*?"<>|]/g,"_")+"_Denetim_V17_1.xlsx";XLSX.writeFile(wb,fn,{compression:true});
 }
 
 </script></body></html>
