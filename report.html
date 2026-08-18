@@ -1,6 +1,6 @@
 <!doctype html><html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Yangın Denetim Raporu</title>
+<title>Yangın Denetim Raporu – V17.2</title>
 <style>
 body{margin:0;background:#eee;font-family:Arial,sans-serif;color:#111}
 .toolbar{position:sticky;top:0;z-index:10;background:#202b36;padding:10px;display:flex;gap:8px}
@@ -23,7 +23,7 @@ th:nth-child(1){width:3%} th:nth-child(2){width:29%} th:nth-child(3){width:10%} 
 </style><script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script></head><body>
 <div class="toolbar">
 <button type="button" onclick="history.back()">← Geri</button>
-<button type="button" id="pdfBtn" onclick="downloadPDF()">📥 PDF İNDİR</button> <button onclick="downloadExcelV17Report()">📊 EXCEL İNDİR</button><button type="button" onclick="window.print()">🖨️ YAZDIR</button>
+<button type="button" id="pdfBtn" onclick="downloadPDF()">📥 PDF İNDİR</button> <button onclick="downloadExcelV17Report()">📊 EXCEL İNDİR</button><span id="excelStatus" style="font-size:12px;color:#667085"> Excel hazır ✓</span><button type="button" onclick="window.print()">🖨️ YAZDIR</button>
 </div>
 <div class="help"><b>iPhone:</b> <b>PDF İNDİR</b> raporu gerçek PDF dosyasına dönüştürür. Ardından Paylaş ekranından <b>Dosyalara Kaydet</b> seçebilirsiniz.</div>
 <div id="root"></div>
@@ -113,43 +113,47 @@ async function downloadPDF(){
 
 
 function downloadExcelV17Report(){
-  if(typeof XLSX==="undefined"){alert("Excel motoru yüklenemedi. İnternet bağlantınızı kontrol edip tekrar deneyin.");return;}
-  var d=JSON.parse(localStorage.getItem("ydpro_report_v15")||"{}");
-  var S=d.statuses||{}, R=d.risks||{}, N=d.notes||{}, A=d.actions||{};
+  if(typeof XLSX==="undefined"){
+    alert("Excel motoru yüklenemedi. İnternet bağlantısını kontrol edip tekrar deneyin.");
+    return;
+  }
+  var d={};
+  try{d=JSON.parse(localStorage.getItem("ydpro_report_v15")||"{}");}catch(e){}
+  var S=d.statuses||{},R=d.risks||{},N=d.notes||{},A=d.actions||{};
   var rows=[],no=0;
   function legalX(q){
     q=String(q||"").toLowerCase();
-    if(/kaçış|merdiven|çıkış|kapı|koridor|tahliye/.test(q))return"BYKHY – Kaçış ve tahliye hükümleri";
-    if(/itfaiye|yaklaşım|hidrant/.test(q))return"BYKHY – İtfaiye erişimi/yaklaşım hükümleri";
-    if(/alarm|dedektör|siren|ihbar/.test(q))return"BYKHY – Algılama ve uyarı sistemleri";
+    if(/kaçış|merdiven|çıkış|kapı|koridor|tahliye/.test(q))return"BYKHY – Kaçış ve tahliye";
+    if(/itfaiye|yaklaşım|hidrant/.test(q))return"BYKHY – İtfaiye erişimi/yaklaşım";
+    if(/alarm|dedektör|siren|ihbar/.test(q))return"BYKHY – Algılama ve uyarı";
     if(/dolap|hortum|söndürücü|pompa|su depos/.test(q))return"BYKHY – Söndürme sistemleri";
-    if(/sorumlu|ekip|eğitim|tatbikat|acil durum plan/.test(q))return"BYKHY + İşyerlerinde Acil Durumlar Hakkında Yönetmelik";
-    if(/elektrik|iş güvenliği/.test(q))return"6331 – Risk değerlendirmesi/acil durum hükümleri";
-    return"BYKHY / ilgili yapı ve kullanım hükümleri";
+    if(/sorumlu|ekip|eğitim|tatbikat|acil durum plan/.test(q))return"İşyerlerinde Acil Durumlar Hakkında Yönetmelik / BYKHY";
+    if(/elektrik|iş güvenliği/.test(q))return"6331 sayılı Kanun / ilgili mevzuat";
+    return"BYKHY / ilgili kullanım hükümleri";
   }
-  function add(sec,arr){
-    (arr||[]).forEach(function(q){
-      no++;
-      rows.push({"No":no,"Bölüm":sec,"Kontrol Maddesi":q,"Durum":S[no]||"İşaretlenmedi","Risk":R[no]||"","Tespit":N[no]||"","Önerilen Tedbir":A[no]||"","Mevzuat":legalX(q),"Termin":""});
-    });
-  }
-  (DB[d.type]||[]).forEach(function(s){add(s[0],s[1]);});
-  add("Ortak Kritik Kontroller",COMMON);
-  var bad=rows.filter(function(x){return x["Durum"]==="Uygunsuz";});
-  var summary=[
-    ["YANGIN DENETİM PRO – V17.1"],
-    ["İşletme / Bina",d.name||""],["Yapı Türü",d.type||""],["Adres",d.address||""],
-    ["Denetim Tarihi",d.date||""],["Denetçi",d.inspector||""],["Yetkili / Telefon",d.phone||""],
-    ["Toplam Madde",rows.length],["Uygun",rows.filter(x=>x["Durum"]==="Uygun").length],
-    ["Uygunsuz",bad.length],["Uygunluk",((rows.filter(x=>x["Durum"]==="Uygun").length)/(Math.max(rows.filter(x=>x["Durum"]&&x["Durum"]!=="Kapsam Dışı").length,1))*100).toFixed(0)+"%"]
-  ];
-  function mk(data,widths){var ws=XLSX.utils.aoa_to_sheet(data);ws["!cols"]=widths.map(function(w){return{wch:w};});ws["!freeze"]={xSplit:0,ySplit:1};return ws;}
+  function add(sec,arr){(arr||[]).forEach(function(q){no++;rows.push({
+    "No":no,"Bölüm":sec,"Kontrol Maddesi":q,"Durum":S[no]||"İşaretlenmedi","Risk":R[no]||"",
+    "Tespit":N[no]||"","Önerilen Tedbir":A[no]||"","Mevzuat":legalX(q),"Termin":""
+  });});}
+  (DB[d.type]||[]).forEach(function(sec){add(sec[0],sec[1]);});
+  add("Ortak Kritik Kontroller",COMMON||[]);
+
   var wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,mk(summary,[2,38,38]),"Özet");
-  var den=XLSX.utils.json_to_sheet(rows);den["!cols"]=[{wch:6},{wch:25},{wch:55},{wch:18},{wch:12},{wch:45},{wch:45},{wch:55},{wch:16}];den["!autofilter"]={ref:"A1:I"+Math.max(rows.length+1,2)};den["!freeze"]={xSplit:0,ySplit:1};XLSX.utils.book_append_sheet(wb,den,"Denetim");
-  var uyg=XLSX.utils.json_to_sheet(bad);uyg["!cols"]=den["!cols"];uyg["!autofilter"]={ref:"A1:I"+Math.max(bad.length+1,2)};uyg["!freeze"]={xSplit:0,ySplit:1};XLSX.utils.book_append_sheet(wb,uyg,"Uygunsuzluklar");
-  var ph=XLSX.utils.aoa_to_sheet([["No","Fotoğraf / Ek","Açıklama"],["","Bu sürüm fotoğraf dosyasını Excel içine gömmek yerine dosya kaydını raporla ilişkilendirir.","Fotoğrafları ayrı klasörde UYG-xxx adıyla saklayabilirsiniz."]]);ph["!cols"]=[{wch:10},{wch:55},{wch:70}];XLSX.utils.book_append_sheet(wb,ph,"Fotoğraflar");
-  var fn=(d.name||"Yangin_Denetim").replace(/[\\/:*?"<>|]/g,"_")+"_Denetim_V17_1.xlsx";XLSX.writeFile(wb,fn,{compression:true});
+  var uygun=rows.filter(x=>x["Durum"]==="Uygun").length;
+  var uygunsuz=rows.filter(x=>x["Durum"]==="Uygunsuz").length;
+  var isaret=rows.filter(x=>!x["Durum"]||x["Durum"]==="İşaretlenmedi").length;
+  var summary=[["YANGIN DENETİM PRO V17.2"],["İşletme / Bina",d.name||""],["Yapı Türü",d.type||""],["Adres",d.address||""],
+    ["Denetim Tarihi",d.date||""],["Denetçi",d.inspector||""],["Yetkili / Telefon",d.phone||""],[],
+    ["Toplam Madde",rows.length],["Uygun",uygun],["Uygunsuz",uygunsuz],["İşaretlenmeyen",isaret],
+    ["Uygunluk Oranı",rows.length?Math.round(uygun/Math.max(rows.length-isaret,1)*100)+"%":"0%"]];
+  var ws0=XLSX.utils.aoa_to_sheet(summary);ws0["!cols"]=[{wch:28},{wch:65}];XLSX.utils.book_append_sheet(wb,ws0,"Özet");
+  var ws1=XLSX.utils.json_to_sheet(rows);ws1["!cols"]=[{wch:6},{wch:26},{wch:58},{wch:18},{wch:12},{wch:45},{wch:45},{wch:50},{wch:16}];
+  ws1["!autofilter"]={ref:"A1:I"+(rows.length+1)};ws1["!freeze"]={xSplit:0,ySplit:1};XLSX.utils.book_append_sheet(wb,ws1,"Denetim");
+  var bad=rows.filter(x=>x["Durum"]==="Uygunsuz");var ws2=XLSX.utils.json_to_sheet(bad);ws2["!cols"]=ws1["!cols"];
+  if(bad.length)ws2["!autofilter"]={ref:"A1:I"+(bad.length+1)};ws2["!freeze"]={xSplit:0,ySplit:1};XLSX.utils.book_append_sheet(wb,ws2,"Uygunsuzluklar");
+  var ws3=XLSX.utils.aoa_to_sheet([["Kontrol No","Fotoğraf Dosyası","Açıklama"],["","Fotoğraflar cihazda ayrıca saklanır.","Uygunsuzluk numarası ile eşleştirilebilir."]]);
+  ws3["!cols"]=[{wch:14},{wch:45},{wch:70}];XLSX.utils.book_append_sheet(wb,ws3,"Fotoğraflar");
+  var fn=(d.name||"Yangin_Denetim").replace(/[\\/:*?"<>|]/g,"_")+"_Denetim_V17_2.xlsx";XLSX.writeFile(wb,fn,{compression:true});
 }
 
 </script></body></html>
