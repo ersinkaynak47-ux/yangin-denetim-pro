@@ -175,11 +175,49 @@ function collectV15(){
 function recordsV15(){return JSON.parse(localStorage.getItem("ydpro_v15")||"[]")}
 function riskInfo(s){s=String(s||"").toLowerCase();if(s.includes("kritik"))return{p:25,label:"Çok yüksek",days:3};if(s.includes("yüksek"))return{p:16,label:"Yüksek",days:7};if(s.includes("orta"))return{p:9,label:"Orta",days:30};return{p:4,label:"Düşük",days:60}}
 function renderDashboard(){var a=recordsV15(),l=a[0];document.getElementById("ana").innerHTML='<section class="card"><h2>🏠 Denetim Yönetim Merkezi</h2><div class="kpi15"><div class="k"><b>'+a.length+'</b><small>Toplam Denetim</small></div><div class="k"><b>'+a.reduce(function(s,x){return s+(x.bad||0)},0)+'</b><small>Uygunsuzluk</small></div><div class="k"><b>'+a.filter(function(x){return(x.bad||0)>0}).length+'</b><small>Takip Gereken</small></div><div class="k"><b>'+(a.length?Math.round(a.reduce(function(s,x){return s+(x.score||0)},0)/a.length):0)+'%</b><small>Ortalama Uygunluk</small></div></div><button class="red" onclick="v15Tab(\'denetim\',document.querySelectorAll(\'.nav15 button\')[1])">📋 YENİ DENETİM</button>'+(l?'<div class="note" style="margin-top:10px"><b>Son denetim:</b> '+esc(l.name||"İsimsiz")+' • '+esc(l.date||"")+' • '+esc(l.type||"")+'<br>Uygunsuzluk: <b>'+(l.bad||0)+'</b> • Uygunluk: <b>'+(l.score||0)+'%</b></div>':'<div class="note" style="margin-top:10px">Henüz denetim kaydı yok.</div>')+'</section>'}
-function renderUyg(){var a=recordsV15(),rows=[];a.forEach(function(r){Object.keys(r.statuses||{}).forEach(function(n){if(r.statuses[n]==="Uygunsuz"){var ri=riskInfo(r.risks[n]);rows.push('<div class="row15"><div><b>'+esc(r.name||"İsimsiz")+' • UYG-'+String(n).padStart(3,"0")+'</b><br><small>'+esc(r.notes[n]||"Tespit girilmemiş")+'</small></div><span class="badge15">'+ri.label+' • '+ri.p+' puan</span></div>')}});document.getElementById("uygList").innerHTML=rows.length?rows.join(""):"Açık uygunsuzluk bulunmuyor."}
-function renderTerm(){var a=recordsV15(),rows=[];a.forEach(function(r){Object.keys(r.statuses||{}).forEach(function(n){if(r.statuses[n]==="Uygunsuz"){var ri=riskInfo(r.risks[n]),d=new Date((r.date||new Date().toISOString().slice(0,10))+"T00:00:00");d.setDate(d.getDate()+ri.days);rows.push('<div class="row15"><div><b>'+esc(r.name||"İsimsiz")+' • UYG-'+String(n).padStart(3,"0")+'</b><br><small>Önerilen termin: '+d.toLocaleDateString("tr-TR")+' • '+ri.label+'</small></div><span class="badge15">'+(d<new Date()?"⏰ Gecikmiş":"Takipte")+'</span></div>')}});document.getElementById("termList").innerHTML=rows.length?rows.join(""):"Takip edilecek uygunsuzluk yok."}
-function renderArchive(){var a=recordsV15();document.getElementById("archiveList").innerHTML=a.length?a.map(function(r,i){return'<div class="row15"><div><b>'+esc(r.name||"İsimsiz")+'</b><br><small>'+esc(r.type||"")+' • '+esc(r.date||"")+' • '+(r.bad||0)+' uygunsuzluk • '+(r.score||0)+'%</small></div><button style="width:auto;margin:0" class="dark" onclick="restoreInspection('+i+')">AÇ</button></div>'}).join(""):"Henüz kayıt yok."}
+function renderUyg(){
+ var a=recordsV15(),rows=[];
+ a.forEach(function(r){
+  Object.keys(r.statuses||{}).forEach(function(n){
+   if(r.statuses[n]==="Uygunsuz"){
+    var ri=riskInfo(r.risks[n]);
+    rows.push('<div class="row15"><div><b>'+esc(r.name||"İsimsiz")+' • UYG-'+String(n).padStart(3,"0")+'</b><br><small>'+esc((r.notes||{})[n]||"Tespit girilmemiş")+'</small></div><span class="badge15">'+ri.label+' • '+ri.p+' puan</span></div>');
+   }
+  });
+ });
+ document.getElementById("uygList").innerHTML=rows.length?rows.join(""):"Açık uygunsuzluk bulunmuyor.";
+}
+function renderTerm(){
+ var a=recordsV15(),rows=[];
+ a.forEach(function(r){
+  Object.keys(r.statuses||{}).forEach(function(n){
+   if(r.statuses[n]==="Uygunsuz"){
+    var ri=riskInfo(r.risks[n]),d=new Date((r.date||new Date().toISOString().slice(0,10))+"T00:00:00");
+    d.setDate(d.getDate()+ri.days);
+    rows.push('<div class="row15"><div><b>'+esc(r.name||"İsimsiz")+' • UYG-'+String(n).padStart(3,"0")+'</b><br><small>Önerilen termin: '+d.toLocaleDateString("tr-TR")+' • '+ri.label+'</small></div><span class="badge15">'+(d<new Date()?"⏰ Gecikmiş":"Takipte")+'</span></div>');
+   }
+  });
+ });
+ document.getElementById("termList").innerHTML=rows.length?rows.join(""):"Takip edilecek uygunsuzluk yok.";
+}
+function renderArchive(){
+ var a=recordsV15();
+ document.getElementById("archiveList").innerHTML=a.length?a.map(function(r,i){return '<div class="row15"><div><b>'+esc(r.name||"İsimsiz")+'</b><br><small>'+esc(r.type||"")+' • '+esc(r.date||"")+' • '+(r.bad||0)+' uygunsuzluk • '+(r.score||0)+'%</small></div><button style="width:auto;margin:0" class="dark" onclick="restoreInspection('+i+')">AÇ</button></div>';}).join(""):"Henüz kayıt yok.";
+}
 function restoreInspection(i){var r=recordsV15()[i];if(!r)return;["name","type","address","date","inspector","phone","general","follow"].forEach(function(id){var e=document.getElementById(id);if(e)e.value=r[id]||""});render();Object.keys(r.statuses||{}).forEach(function(n){var e=document.querySelector('[data-status="'+n+'"]');if(e)e.value=r.statuses[n]||""});Object.keys(r.risks||{}).forEach(function(n){var e=document.querySelector('[data-risk="'+n+'"]');if(e)e.value=r.risks[n]||""});Object.keys(r.notes||{}).forEach(function(n){var e=document.querySelector('[data-note="'+n+'"]');if(e)e.value=r.notes[n]||""});Object.keys(r.actions||{}).forEach(function(n){var e=document.querySelector('[data-action="'+n+'"]');if(e)e.value=r.actions[n]||""});update();v15Tab("denetim",document.querySelectorAll(".nav15 button")[1]);window.scrollTo(0,0)}
-function renderStats(){var a=recordsV15(),bad=0,high=0,mid=0,low=0,late=0;a.forEach(function(r){Object.keys(r.statuses||{}).forEach(function(n){if(r.statuses[n]==="Uygunsuz"){bad++;var ri=riskInfo(r.risks[n]);if(ri.label==="Yüksek"||ri.label==="Çok yüksek")high++;else if(ri.label==="Orta")mid++;else low++;var d=new Date((r.date||new Date().toISOString().slice(0,10))+"T00:00:00");d.setDate(d.getDate()+ri.days);if(d<new Date())late++}})});document.getElementById("stTotal").textContent=a.length;document.getElementById("stUyg").textContent=bad;document.getElementById("stOpen").textContent=bad;document.getElementById("rHigh").textContent=high;document.getElementById("rMid").textContent=mid;document.getElementById("rLow").textContent=low;document.getElementById("rLate").textContent=late;document.getElementById("stRate").textContent=(a.length?Math.round(a.reduce(function(s,x){return s+(x.score||0)},0)/a.length):0)+"%"}
+function renderStats(){
+ var a=recordsV15(),bad=0,high=0,mid=0,low=0,late=0;
+ a.forEach(function(r){
+  Object.keys(r.statuses||{}).forEach(function(n){
+   if(r.statuses[n]==="Uygunsuz"){
+    bad++;var ri=riskInfo(r.risks[n]);
+    if(ri.label==="Yüksek"||ri.label==="Çok yüksek")high++;else if(ri.label==="Orta")mid++;else low++;
+    var d=new Date((r.date||new Date().toISOString().slice(0,10))+"T00:00:00");d.setDate(d.getDate()+ri.days);if(d<new Date())late++;
+   }
+  });
+ });
+ document.getElementById("stTotal").textContent=a.length;document.getElementById("stUyg").textContent=bad;document.getElementById("stOpen").textContent=bad;document.getElementById("rHigh").textContent=high;document.getElementById("rMid").textContent=mid;document.getElementById("rLow").textContent=low;document.getElementById("rLate").textContent=late;document.getElementById("stRate").textContent=(a.length?Math.round(a.reduce(function(s,x){return s+(x.score||0)},0)/a.length):0)+"%";
+}
 function refreshV15(){renderDashboard();renderUyg();renderTerm();renderArchive();renderStats()}
 function backupV15(){var data={version:"V15",createdAt:new Date().toISOString(),records:recordsV15()};var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Yangin_Denetim_Pro_Yedek_"+new Date().toISOString().slice(0,10)+".json";a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
 function restoreV15(){var f=document.getElementById("restoreFile").files[0];if(!f){alert("Önce yedek dosyasını seçin.");return}var rd=new FileReader();rd.onload=function(){try{var d=JSON.parse(rd.result);if(!Array.isArray(d.records))throw 0;localStorage.setItem("ydpro_v15",JSON.stringify(d.records));refreshV15();load();alert("Yedek geri yüklendi.")}catch(e){alert("Geçersiz yedek dosyası.")}};rd.readAsText(f)}
